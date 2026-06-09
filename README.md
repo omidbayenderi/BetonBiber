@@ -18,6 +18,7 @@ Modern React/Vite website for BetonBiber Bautenschutz: services, estimator, cont
   - Nutzungsbedingungen / Terms of Use
   - AGB / Impressum
 - Cookie consent banner with necessary, analytics, and marketing categories
+- Custom square mascot beaver favicon
 - SEO support:
   - route-aware document titles and meta descriptions
   - canonical URLs
@@ -52,12 +53,36 @@ Unknown routes render the custom 404 view.
 
 Prerequisites: Node.js and npm.
 
-```bash
-npm install
-npm run dev
-```
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Copy `.env.example` to `.env` and configure your environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
 The dev server is configured for port `3000`. If that port is busy, Vite will offer another local port.
+
+## Environment Variables
+
+Configure the following variables in your `.env` file for local development or as Secrets in your deployment environment:
+
+- `VITE_ADMIN_PASS_HASH`: The SHA-256 hash of your admin panel password. If not provided, it defaults to the hash of `biber2026`.
+- `VITE_EMAILJS_SERVICE_ID`: EmailJS Service ID for contact form delivery.
+- `VITE_EMAILJS_TEMPLATE_ID`: EmailJS Template ID.
+- `VITE_EMAILJS_PUBLIC_KEY`: EmailJS Public Key.
+
+To generate a SHA-256 hash for your password on macOS/Linux:
+```bash
+echo -n "yourpassword" | shasum -a 256
+```
 
 ## Verification
 
@@ -68,16 +93,13 @@ npm run build
 
 `npm run lint` runs TypeScript with `tsc --noEmit`.
 
-## Admin Notes
+## Admin Notes & Security
 
 The admin panel is available at `/amit`.
 
-Default local/dev passwords currently accepted by the app:
-
-- `admin123`
-- `biber2026`
-
-Before production, replace this client-side password gate with real authentication if the admin panel will be publicly reachable. The current implementation is suitable for a prototype/static local admin workflow, not as strong production security.
+Password verification uses SHA-256 hashing to secure the client-side gate:
+- Default local/dev password: `biber2026` (whose hash is configured in the code as a fallback)
+- To customize the admin password, set the `VITE_ADMIN_PASS_HASH` environment variable with the SHA-256 hash of your chosen password.
 
 ## Content Storage
 
