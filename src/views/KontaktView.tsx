@@ -3,12 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Send, ShieldAlert, Award, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import emailjs from '@emailjs/browser';
+import { Phone, Mail, MapPin, Send, ShieldAlert, Award, RefreshCw, Loader2 } from 'lucide-react';
 import { QuoteRequest } from '../types';
 import { MINIMAP_URL } from '../constants';
 import QuoteRequestList from '../components/QuoteRequestList';
 import { getPricingConfig } from '../lib/pricingState';
+
+const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID  as string | undefined;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
+const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  as string | undefined;
+
+const emailjsConfigured = Boolean(EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY);
 
 interface KontaktProps {
   requests: QuoteRequest[];
@@ -43,6 +50,8 @@ export default function KontaktView({
     areaSize: '',
     message: ''
   });
+  const [isSending, setIsSending] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [mapType, setMapType] = useState<'standard' | 'sat'>('standard');
   const [mapZoom, setMapZoom] = useState<number>(14);
@@ -80,13 +89,15 @@ export default function KontaktView({
     }
   }, [exportParams]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.phone) {
       alert('Bitte füllen Sie alle Pflichtfelder (* Name, Email, Telefon) aus.');
       return;
     }
+
+    setIsSending(true);
 
     const newRequest: QuoteRequest = {
       id: Math.random().toString(36).substring(2, 9),
@@ -101,15 +112,28 @@ export default function KontaktView({
       status: 'Received'
     };
 
-    onAddRequest(newRequest);
+    // Send email via EmailJS if configured, otherwise fall back to local-only
+    if (emailjsConfigured && formRef.current) {
+      try {
+        await emailjs.sendForm(
+          EMAILJS_SERVICE_ID!,
+          EMAILJS_TEMPLATE_ID!,
+          formRef.current,
+          { publicKey: EMAILJS_PUBLIC_KEY! }
+        );
+      } catch (err) {
+        console.error('EmailJS send failed:', err);
+      }
+    }
 
-    // Call success notification modal trigger
+    onAddRequest(newRequest);
+    setIsSending(false);
+
     triggerSuccess(
       'Vielen Dank für Ihr Vertrauen',
       `Hallo ${formData.name},\nwir haben Ihre Anfrage für "${formData.serviceType}" erhalten. Einer unserer Betonbiber-Techniker wird sich in Kürze unter ${formData.phone} mit Ihnen in Verbindung setzen.`
     );
 
-    // Reset Form
     setFormData({
       name: '',
       email: '',
@@ -269,8 +293,9 @@ export default function KontaktView({
 
           {/* Right Column The Contact Form */}
           <div className="lg:col-span-7">
-            <form 
-              onSubmit={handleSubmit} 
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit}
               className="bg-white border-4 border-primary-navy p-6 md:p-8 rounded-xl shadow-md flex flex-col gap-5"
             >
               <div className="flex flex-col">
@@ -290,6 +315,7 @@ export default function KontaktView({
                   </label>
                   <input
                     type="text"
+                    name="from_name"
                     required
                     placeholder="z.B. Klaus Schuster"
                     value={formData.name}
@@ -304,6 +330,7 @@ export default function KontaktView({
                   </label>
                   <input
                     type="email"
+                    name="reply_to"
                     required
                     placeholder="schuster@beispiel.de"
                     value={formData.email}
@@ -321,6 +348,7 @@ export default function KontaktView({
                   </label>
                   <input
                     type="tel"
+                    name="phone"
                     required
                     placeholder="z.B. +49 176 123456"
                     value={formData.phone}
@@ -335,6 +363,7 @@ export default function KontaktView({
                   </label>
                   <input
                     type="number"
+                    name="area_size"
                     placeholder="optional, z.B. 45"
                     value={formData.areaSize}
                     onChange={(e) => setFormData({ ...formData, areaSize: e.target.value })}
@@ -349,6 +378,7 @@ export default function KontaktView({
                   Gewünschte Leistung
                 </label>
                 <select
+                  name="service_type"
                   value={formData.serviceType}
                   onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
                   className="bg-brand-bg/50 border-2 border-gray-200 hover:border-primary-navy/40 focus:border-primary-navy p-2.5 rounded text-xs font-sans font-bold text-primary-navy outline-none"
@@ -367,6 +397,7 @@ export default function KontaktView({
                   Ihr Anliegen / Schadensbeschreibung
                 </label>
                 <textarea
+                  name="message"
                   rows={4}
                   placeholder="Beschreiben Sie kurz Ihr feuchtes Problem: Wandnahe Feuchtigkeit, Schimmelbildung am Sockel, feuchter Riss..."
                   value={formData.message}
@@ -382,10 +413,20 @@ export default function KontaktView({
 
               <button
                 type="submit"
-                className="mt-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-display font-black text-xs uppercase py-3.5 px-6 rounded transition-all text-center flex items-center justify-center gap-2"
+                disabled={isSending}
+                className="mt-2 bg-brand-orange hover:bg-brand-orange-dark disabled:opacity-60 disabled:cursor-not-allowed text-white font-display font-black text-xs uppercase py-3.5 px-6 rounded transition-all text-center flex items-center justify-center gap-2"
               >
-                <span>Nachricht absenden</span>
-                <Send size={12} />
+                {isSending ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    <span>Wird gesendet…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Nachricht absenden</span>
+                    <Send size={12} />
+                  </>
+                )}
               </button>
             </form>
           </div>
