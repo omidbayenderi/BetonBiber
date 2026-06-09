@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SERVICES, CONCRETE_ARCH_URL } from '../constants';
 import { PageId, ServiceDetail } from '../types';
 import { Info, HelpCircle, ArrowRight, ShieldCheck, HeartPulse, Hammer, Droplets, ZoomIn, X } from 'lucide-react';
+import { getPricingConfig } from '../lib/pricingState';
 
 interface LeistungenViewProps {
   navigateTo: (page: PageId) => void;
@@ -16,17 +17,31 @@ interface LeistungenViewProps {
 export default function LeistungenView({ navigateTo, onSelectServiceForContact }: LeistungenViewProps) {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'keller' | 'beton' | 'schimmel'>('all');
   const [activeModalService, setActiveModalService] = useState<ServiceDetail | null>(null);
+  const [pricingConfig, setPricingConfig] = useState(() => getPricingConfig());
+
+  useEffect(() => {
+    const handleUpdated = () => {
+      setPricingConfig(getPricingConfig());
+    };
+    window.addEventListener('pricing_config_updated', handleUpdated);
+    return () => {
+      window.removeEventListener('pricing_config_updated', handleUpdated);
+    };
+  }, []);
+
+  const servicesContent = pricingConfig.servicesContent;
+  const serviceList = servicesContent?.items || SERVICES;
 
   const getFilteredServices = () => {
     switch (selectedFilter) {
       case 'keller':
-        return SERVICES.filter(s => s.id === 'kellerabdichtung');
+        return serviceList.filter(s => s.id === 'kellerabdichtung');
       case 'beton':
-        return SERVICES.filter(s => s.id === 'betonsanierung' || s.id === 'riss_sanierung');
+        return serviceList.filter(s => s.id === 'betonsanierung' || s.id === 'riss_sanierung');
       case 'schimmel':
-        return SERVICES.filter(s => s.id === 'schimmelbeseitigung');
+        return serviceList.filter(s => s.id === 'schimmelbeseitigung');
       default:
-        return SERVICES;
+        return serviceList;
     }
   };
 
@@ -56,13 +71,13 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
         {/* Header Metadata */}
         <div className="flex flex-col gap-3">
           <span className="self-start text-xs font-sans font-extrabold text-brand-orange bg-brand-orange/15 px-3 py-1 rounded">
-            UNSER SERVICE-PORTFOLIO
+            {servicesContent?.eyebrow || 'UNSER SERVICE-PORTFOLIO'}
           </span>
           <h1 className="font-display font-black text-3xl md:text-5xl text-primary-navy uppercase tracking-tight max-w-xl">
-            Wirksame Bauwerkserhaltung
+            {servicesContent?.title || 'Wirksame Bauwerkserhaltung'}
           </h1>
           <p className="font-sans text-sm text-brand-text-muted leading-relaxed max-w-lg">
-            Wir sanieren Schäden im Tief- und Hochbau mit zertifizierter Fachkenntnis. Entdecken Sie unsere Kernarbeitsfelder.
+            {servicesContent?.description || 'Wir sanieren Schäden im Tief- und Hochbau mit zertifizierter Fachkenntnis. Entdecken Sie unsere Kernarbeitsfelder.'}
           </p>
         </div>
 
@@ -183,8 +198,8 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
         <div className="bg-primary-navy text-white rounded-xl overflow-hidden border-2 border-primary-navy grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mt-12 shadow-md">
           <div className="h-64 lg:h-full min-h-[250px] relative">
             <img 
-              src={CONCRETE_ARCH_URL} 
-              alt="Architektonische Betonsanierung" 
+              src={servicesContent?.extraImageUrl || CONCRETE_ARCH_URL} 
+              alt={servicesContent?.extraTitle || 'Architektonische Betonsanierung'} 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
@@ -192,20 +207,20 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
           </div>
           <div className="p-8 md:p-12 flex flex-col gap-4">
             <span className="text-xs font-sans text-brand-orange font-bold uppercase tracking-wider">
-              ZUSÄTZLICHER INGENIEUR-SUPPORT
+              {servicesContent?.extraEyebrow || 'ZUSÄTZLICHER INGENIEUR-SUPPORT'}
             </span>
             <h3 className="font-display font-black text-2xl uppercase text-white tracking-tight">
-              Schadensanalysen & Sachverständigengutachten
+              {servicesContent?.extraTitle || 'Schadensanalysen & Sachverständigengutachten'}
             </h3>
             <p className="font-sans text-xs text-gray-300 leading-relaxed">
-              Feuchtigkeitsursachen im Mauerwerk sind oft komplexer als sie scheinen. Wir belassen es nicht beim bloßen Symptomkurieren: Unsere erfahrenen Sachverständigen führen professionelle Kernbohrungen, CM-Messerfassungen und digitale Thermografien durch.
+              {servicesContent?.extraDescription || 'Feuchtigkeitsursachen im Mauerwerk sind oft komplexer als sie scheinen. Wir belassen es nicht beim bloßen Symptomkurieren: Unsere erfahrenen Sachverständigen führen professionelle Kernbohrungen, CM-Messerfassungen und digitale Thermografien durch.'}
             </p>
             <div className="flex flex-wrap gap-4 mt-2">
               <button 
                 onClick={() => navigateTo('kontakt')}
                 className="bg-brand-orange hover:bg-brand-orange-dark text-white font-display font-black text-xs uppercase px-5 py-3 rounded flex items-center gap-1.5 transition-colors"
               >
-                <span>Spezialgutachten anfordern</span>
+                <span>{servicesContent?.extraButtonLabel || 'Spezialgutachten anfordern'}</span>
                 <ArrowRight size={12} />
               </button>
             </div>

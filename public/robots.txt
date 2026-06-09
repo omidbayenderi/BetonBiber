@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /amit
+
+Sitemap: https://betonbiber.de/sitemap.xml

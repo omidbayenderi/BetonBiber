@@ -9,6 +9,7 @@ import { PageId } from '../types';
 // @ts-ignore
 import footerLogo from '../assets/images/regenerated_image_1780950671312.png';
 import { getPricingConfig } from '../lib/pricingState';
+import LegalModal, { LegalSection } from './LegalModal';
 
 interface FooterProps {
   navigateTo: (page: PageId) => void;
@@ -16,6 +17,8 @@ interface FooterProps {
 
 export default function Footer({ navigateTo }: FooterProps) {
   const [pricingConfig, setPricingConfig] = useState(() => getPricingConfig());
+  const [legalSection, setLegalSection] = useState<LegalSection | null>(null);
+  const footer = pricingConfig.footer;
 
   useEffect(() => {
     const handleUpdated = () => {
@@ -42,14 +45,14 @@ export default function Footer({ navigateTo }: FooterProps) {
             />
           </div>
           <p className="font-sans text-sm leading-relaxed text-gray-400">
-            Ihr zertifiziertes Expertenteam für zuverlässige, langlebige und absolut dichte Lösungen für moderne Bauwerke und Bestandsbauten. Ingenieursqualität für Ihr Fundament.
+            {footer?.description || 'Ihr zertifiziertes Expertenteam für zuverlässige, langlebige und absolut dichte Lösungen für moderne Bauwerke und Bestandsbauten. Ingenieursqualität für Ihr Fundament.'}
           </p>
         </div>
 
         {/* Services / Leistungen Column */}
         <div className="flex flex-col gap-4">
           <h4 className="font-display font-bold text-sm text-brand-orange uppercase tracking-wider border-b border-white/10 pb-2">
-            UNSERE LEISTUNGEN
+            {footer?.servicesTitle || 'UNSERE LEISTUNGEN'}
           </h4>
           <ul className="flex flex-col gap-3 font-sans text-sm">
             <li>
@@ -57,7 +60,7 @@ export default function Footer({ navigateTo }: FooterProps) {
                 onClick={() => navigateTo('leistungen')} 
                 className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
               >
-                Kellerabdichtung & Horizontalsperre
+                {footer?.serviceLink1 || 'Kellerabdichtung & Horizontalsperre'}
               </button>
             </li>
             <li>
@@ -65,7 +68,7 @@ export default function Footer({ navigateTo }: FooterProps) {
                 onClick={() => navigateTo('leistungen')} 
                 className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
               >
-                Injektionsverfahren & Riss-sanierung
+                {footer?.serviceLink2 || 'Injektionsverfahren & Riss-sanierung'}
               </button>
             </li>
             <li>
@@ -73,7 +76,7 @@ export default function Footer({ navigateTo }: FooterProps) {
                 onClick={() => navigateTo('leistungen')} 
                 className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
               >
-                Betonsanierung & Bodenversiegelung
+                {footer?.serviceLink3 || 'Betonsanierung & Bodenversiegelung'}
               </button>
             </li>
             <li>
@@ -81,7 +84,7 @@ export default function Footer({ navigateTo }: FooterProps) {
                 onClick={() => navigateTo('leistungen')} 
                 className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
               >
-                Mikrobiologische Schimmelbeseitigung
+                {footer?.serviceLink4 || 'Mikrobiologische Schimmelbeseitigung'}
               </button>
             </li>
           </ul>
@@ -90,23 +93,23 @@ export default function Footer({ navigateTo }: FooterProps) {
         {/* Legal & Info Column */}
         <div className="flex flex-col gap-4">
           <h4 className="font-display font-bold text-sm text-brand-orange uppercase tracking-wider border-b border-white/10 pb-2">
-            RECHTLICHES & HELP
+            {footer?.legalTitle || 'RECHTLICHES & HELP'}
           </h4>
           <ul className="flex flex-col gap-3 font-sans text-sm mb-4">
             <li>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors hover:underline">
-                Datenschutzerklärung / Privacy Policy
-              </a>
+              <button type="button" onClick={() => setLegalSection('privacy')} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
+                {footer?.legalLink1 || 'Datenschutzerklärung / Privacy Policy'}
+              </button>
             </li>
             <li>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors hover:underline">
-                Nutzungsbedingungen / Terms of Use
-              </a>
+              <button type="button" onClick={() => setLegalSection('terms')} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
+                {footer?.legalLink2 || 'Nutzungsbedingungen / Terms of Use'}
+              </button>
             </li>
             <li>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors hover:underline">
-                AGB / Impressum
-              </a>
+              <button type="button" onClick={() => setLegalSection('imprint')} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
+                {footer?.legalLink3 || 'AGB / Impressum'}
+              </button>
             </li>
           </ul>
           
@@ -138,18 +141,24 @@ export default function Footer({ navigateTo }: FooterProps) {
       </div>
 
       <div className="w-full bg-primary-navy-light py-6 border-t border-white/5 text-center px-4">
-        <div className="max-w-[1240px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="max-w-[1240px] mx-auto flex flex-col items-center justify-center gap-2">
           <p className="font-sans text-xs text-gray-500">
-            © {new Date().getFullYear()} Betonbiber Bautenschutz. Alle Rechte vorbehalten. | Industrial Integrity Engineered.
+            © {new Date().getFullYear()} {footer?.copyrightSuffix || 'Betonbiber Bautenschutz. Alle Rechte vorbehalten. | Industrial Integrity Engineered.'}
           </p>
-          <button 
-            onClick={() => navigateTo('admin')}
-            className="font-display font-extrabold text-[11px] text-gray-500 hover:text-brand-orange uppercase tracking-widest flex items-center gap-1.5 transition-colors border border-gray-800 hover:border-brand-orange px-3 py-1.5 rounded-full"
+          <a
+            href="https://bayenderi.com"
+            target="_blank"
+            rel="noreferrer"
+            className="font-sans text-xs font-semibold text-gray-500 transition-colors hover:text-brand-orange"
           >
-            <span>🔑 Admin-Bereich</span>
-          </button>
+            Webmeister Bayenderi.com
+          </a>
         </div>
       </div>
+
+      {legalSection && (
+        <LegalModal initialSection={legalSection} onClose={() => setLegalSection(null)} />
+      )}
     </footer>
   );
 }

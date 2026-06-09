@@ -12,10 +12,80 @@ import LeistungenView from './views/LeistungenView';
 import UberUnsView from './views/UberUnsView';
 import KontaktView from './views/KontaktView';
 import AdminView from './views/AdminView';
+import NotFoundView from './views/NotFoundView';
 import SuccessModal from './components/SuccessModal';
+import CookieConsent from './components/CookieConsent';
+
+const SITE_URL = 'https://betonbiber.de';
+
+const PAGE_ROUTES: Record<Exclude<PageId, 'not_found'>, string> = {
+  home: '/',
+  leistungen: '/leistungen',
+  uber_uns: '/ueber-uns',
+  kontakt: '/kontakt',
+  admin: '/amit'
+};
+
+const ROUTE_PAGES: Record<string, PageId> = {
+  '/': 'home',
+  '/leistungen': 'leistungen',
+  '/ueber-uns': 'uber_uns',
+  '/kontakt': 'kontakt',
+  '/amit': 'admin'
+};
+
+const PAGE_SEO: Record<PageId, { title: string; description: string; robots?: string }> = {
+  home: {
+    title: 'BetonBiber | Bautenschutz, Kellerabdichtung & Betonsanierung',
+    description: 'BetonBiber ist Ihr Fachbetrieb für Kellerabdichtung, Riss-sanierung, Betonsanierung und Schimmelbeseitigung mit ingenieurmäßiger Bauwerkserhaltung.'
+  },
+  leistungen: {
+    title: 'Leistungen | Kellerabdichtung, Riss-sanierung & Betonsanierung',
+    description: 'Entdecken Sie die BetonBiber Leistungen: Kellerabdichtung, Riss-sanierung, Betonsanierung, Schimmelbeseitigung und technische Schadensanalyse.'
+  },
+  uber_uns: {
+    title: 'Über uns | BetonBiber Bautenschutz-Spezialisten',
+    description: 'Lernen Sie BetonBiber kennen: erfahrene Bautenschutz-Spezialisten für Abdichtungstechnik, Bauwerkssanierung und langlebige Systemlösungen.'
+  },
+  kontakt: {
+    title: 'Kontakt | BetonBiber Beratung & Angebotsanfrage',
+    description: 'Kontaktieren Sie BetonBiber für Beratung, Schadensanalyse und ein unverbindliches Angebot für Bautenschutz und Sanierung.'
+  },
+  admin: {
+    title: 'Admin | BetonBiber',
+    description: 'Interner BetonBiber Adminbereich.',
+    robots: 'noindex, nofollow'
+  },
+  not_found: {
+    title: '404 | Seite nicht gefunden | BetonBiber',
+    description: 'Die angeforderte BetonBiber Seite wurde nicht gefunden.',
+    robots: 'noindex, follow'
+  }
+};
+
+function getPageFromLocation(): PageId {
+  const redirectedPath = sessionStorage.getItem('betonbiber_redirect_path');
+  if (redirectedPath) {
+    sessionStorage.removeItem('betonbiber_redirect_path');
+    return ROUTE_PAGES[redirectedPath] || 'not_found';
+  }
+  const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/';
+  return ROUTE_PAGES[normalizedPath] || 'not_found';
+}
+
+function setOrCreateMeta(selector: string, attrs: Record<string, string>) {
+  let element = document.head.querySelector(selector) as HTMLMetaElement | HTMLLinkElement | null;
+  if (!element) {
+    element = selector.startsWith('link') ? document.createElement('link') : document.createElement('meta');
+    Object.entries(attrs).forEach(([key, value]) => element!.setAttribute(key, value));
+    document.head.appendChild(element);
+    return;
+  }
+  Object.entries(attrs).forEach(([key, value]) => element!.setAttribute(key, value));
+}
 
 export default function App() {
-  const [activePage, setActivePage] = useState<PageId>('home');
+  const [activePage, setActivePage] = useState<PageId>(() => getPageFromLocation());
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   
   // Storage for export variables from calculator to contact form
@@ -48,6 +118,26 @@ export default function App() {
       console.error('Error loading requests from localStorage:', e);
     }
   }, []);
+
+  useEffect(() => {
+    const handlePopState = () => setActivePage(getPageFromLocation());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const seo = PAGE_SEO[activePage];
+    const canonicalPath = activePage !== 'not_found' && activePage !== 'admin' ? PAGE_ROUTES[activePage] : window.location.pathname;
+    const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
+
+    document.title = seo.title;
+    setOrCreateMeta('meta[name="description"]', { name: 'description', content: seo.description });
+    setOrCreateMeta('meta[name="robots"]', { name: 'robots', content: seo.robots || 'index, follow' });
+    setOrCreateMeta('link[rel="canonical"]', { rel: 'canonical', href: canonicalUrl });
+    setOrCreateMeta('meta[property="og:title"]', { property: 'og:title', content: seo.title });
+    setOrCreateMeta('meta[property="og:description"]', { property: 'og:description', content: seo.description });
+    setOrCreateMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
+  }, [activePage]);
 
   // Save requests to local storage
   const saveRequests = (updatedList: QuoteRequest[]) => {
@@ -87,7 +177,7 @@ export default function App() {
     message: string;
   }) => {
     setExportParams(params);
-    setActivePage('kontakt');
+    handleNavigate('kontakt');
   };
 
   const handleSelectServiceForContact = (serviceTitle: string) => {
@@ -110,6 +200,12 @@ export default function App() {
   // Safe navigation scroll-to-top handler
   const handleNavigate = (page: PageId) => {
     setActivePage(page);
+    if (page !== 'not_found') {
+      const path = PAGE_ROUTES[page];
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -164,6 +260,10 @@ export default function App() {
             onClearAllRequests={handleClearAllRequests}
           />
         )}
+
+        {activePage === 'not_found' && (
+          <NotFoundView navigateTo={handleNavigate} />
+        )}
       </main>
 
       {/* 3. Footer Copyright Info */}
@@ -176,6 +276,8 @@ export default function App() {
         title={successModal.title}
         message={successModal.message}
       />
+
+      <CookieConsent />
 
     </div>
   );

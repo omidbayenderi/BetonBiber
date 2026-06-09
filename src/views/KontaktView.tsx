@@ -185,7 +185,7 @@ export default function KontaktView({
                   <div>
                     <p className="text-xs text-gray-400 font-extrabold uppercase tracking-widest leading-none">Zentrale</p>
                     <p className="text-primary-navy font-bold">
-                      Am Biberdamm 12, 10115 Berlin
+                      {pricingConfig.contact?.streetAddress || 'Am Biberdamm 12'}, {pricingConfig.contact?.postalCity || '10115 Berlin'}
                     </p>
                   </div>
                 </div>

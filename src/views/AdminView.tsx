@@ -10,15 +10,20 @@ import {
   CheckCircle, FileSpreadsheet, LogOut, ArrowRight,
   Users, Home, Image, Type, Star, Activity, Sparkles,
   TrendingUp, Clock3, Gauge, LockKeyhole, CircleDollarSign,
-  UploadCloud, Link2, SlidersHorizontal, LayoutDashboard, ClipboardList
+  UploadCloud, Link2, SlidersHorizontal, LayoutDashboard, ClipboardList,
+  BriefcaseBusiness, Building2, MessageSquareQuote
 } from 'lucide-react';
-import { QuoteRequest, TeamMember } from '../types';
+import { QuoteRequest, ServiceDetail, TeamMember, Testimonial } from '../types';
 import {
   getPricingConfig,
   savePricingConfig,
   PricingConfig,
   DEFAULT_PRICING_CONFIG,
-  HomepageContent
+  HomepageContent,
+  ServicesContent,
+  AboutContent,
+  FooterContent,
+  ContactConfig
 } from '../lib/pricingState';
 
 interface AdminViewProps {
@@ -44,7 +49,7 @@ export default function AdminView({
   // Config State
   const [config, setConfig] = useState<PricingConfig>(getPricingConfig());
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'requests'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'services' | 'about' | 'requests'>('calculator');
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
@@ -134,12 +139,53 @@ export default function AdminView({
     setConfig({ ...config, homepage: { ...current, [feat]: { ...current[feat], [subField]: val } } });
   };
 
-  const handleContactChange = (field: 'phone' | 'phoneRaw' | 'email', val: string) => {
-    const contact = config.contact || {
-      phone: '+49 (0) 800 555 6677',
-      phoneRaw: '+498005556677',
-      email: 'anfrage@betonbiber.de'
-    };
+  const handleFooterChange = (field: keyof FooterContent, val: string) => {
+    const current: FooterContent = config.footer || { ...DEFAULT_PRICING_CONFIG.footer! };
+    setConfig({ ...config, footer: { ...current, [field]: val } });
+  };
+
+  const handleServicesContentChange = (field: keyof Omit<ServicesContent, 'items'>, val: string) => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    setConfig({ ...config, servicesContent: { ...current, [field]: val } });
+  };
+
+  const handleServiceDetailChange = (index: number, field: keyof ServiceDetail, val: string | boolean | string[]) => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    const items = [...current.items];
+    if (items[index]) {
+      items[index] = { ...items[index], [field]: val };
+      setConfig({ ...config, servicesContent: { ...current, items } });
+    }
+  };
+
+  const handleServiceFeatureChange = (serviceIndex: number, featureIndex: number, val: string) => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    const items = [...current.items];
+    const service = items[serviceIndex];
+    if (service) {
+      const features = [...service.features];
+      features[featureIndex] = val;
+      items[serviceIndex] = { ...service, features };
+      setConfig({ ...config, servicesContent: { ...current, items } });
+    }
+  };
+
+  const handleAboutChange = (field: keyof Omit<AboutContent, 'testimonials'>, val: string) => {
+    const current: AboutContent = config.about || { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [...DEFAULT_PRICING_CONFIG.about!.testimonials] };
+    setConfig({ ...config, about: { ...current, [field]: val } });
+  };
+
+  const handleTestimonialChange = (index: number, field: keyof Testimonial, val: string | number) => {
+    const current: AboutContent = config.about || { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [...DEFAULT_PRICING_CONFIG.about!.testimonials] };
+    const testimonials = [...current.testimonials];
+    if (testimonials[index]) {
+      testimonials[index] = { ...testimonials[index], [field]: val };
+      setConfig({ ...config, about: { ...current, testimonials } });
+    }
+  };
+
+  const handleContactChange = (field: keyof ContactConfig, val: string) => {
+    const contact = config.contact || { ...DEFAULT_PRICING_CONFIG.contact! };
     setConfig({
       ...config,
       contact: {
@@ -400,6 +446,28 @@ export default function AdminView({
               >
                 <Home size={15} />
                 <span>Startseite</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('services')}
+                className={`flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2.5 font-display text-xs font-extrabold uppercase transition-all ${
+                  activeTab === 'services'
+                    ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/15'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-primary-navy'
+                }`}
+              >
+                <BriefcaseBusiness size={15} />
+                <span>Leistungen</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2.5 font-display text-xs font-extrabold uppercase transition-all ${
+                  activeTab === 'about'
+                    ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-primary-navy'
+                }`}
+              >
+                <Building2 size={15} />
+                <span>Über Uns</span>
               </button>
               <button
                 onClick={() => setActiveTab('requests')}
@@ -765,6 +833,75 @@ export default function AdminView({
                 </h3>
 
                 <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        Firmenname
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.companyName || ''}
+                        onChange={(e) => handleContactChange('companyName', e.target.value)}
+                        placeholder="Betonbiber Bautenschutz"
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        Vertretungsberechtigte Person
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.responsiblePerson || ''}
+                        onChange={(e) => handleContactChange('responsiblePerson', e.target.value)}
+                        placeholder="Geschäftsführung / Inhaber"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        Straße & Hausnummer
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.streetAddress || ''}
+                        onChange={(e) => handleContactChange('streetAddress', e.target.value)}
+                        placeholder="Am Biberdamm 12"
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        PLZ & Ort
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.postalCity || ''}
+                        onChange={(e) => handleContactChange('postalCity', e.target.value)}
+                        placeholder="10115 Berlin"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1 w-full">
+                    <label className={labelClass}>
+                      Land
+                    </label>
+                    <input
+                      type="text"
+                      value={config.contact?.country || ''}
+                      onChange={(e) => handleContactChange('country', e.target.value)}
+                      placeholder="Deutschland"
+                      className={inputClass}
+                    />
+                  </div>
+
                   {/* Phone Display Name */}
                   <div className="flex flex-col gap-1 w-full">
                     <label className={labelClass}>
@@ -814,6 +951,47 @@ export default function AdminView({
                     <span className="font-sans text-[10px] text-slate-400 leading-none mt-0.5">
                       E-Mail-Adresse für direkte Kundenanfragen und Verlinkungen.
                     </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 pt-3 border-t border-slate-200">
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        USt-IdNr. / Steuerhinweis
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.vatId || ''}
+                        onChange={(e) => handleContactChange('vatId', e.target.value)}
+                        placeholder="DE..."
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        Handelsregister / Registergericht
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.registerInfo || ''}
+                        onChange={(e) => handleContactChange('registerInfo', e.target.value)}
+                        placeholder="HRB ..., Amtsgericht ..."
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 w-full">
+                      <label className={labelClass}>
+                        Kammer / Aufsichtsbehörde
+                      </label>
+                      <input
+                        type="text"
+                        value={config.contact?.supervisoryAuthority || ''}
+                        onChange={(e) => handleContactChange('supervisoryAuthority', e.target.value)}
+                        placeholder="falls einschlägig"
+                        className={inputClass}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -989,6 +1167,61 @@ export default function AdminView({
                   </div>
                 </div>
 
+                {/* Footer Content */}
+                {(() => {
+                  const footer = config.footer || { ...DEFAULT_PRICING_CONFIG.footer! };
+                  return (
+                    <div className={panelClass}>
+                      <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
+                        <Layers size={17} className="text-brand-orange-dark" />
+                        <span>5. Footer-Bereich</span>
+                      </h3>
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className={labelClass}>Footer Beschreibung</label>
+                          <textarea rows={3} value={footer.description} onChange={e => handleFooterChange('description', e.target.value)}
+                            className={`${inputClass} resize-none leading-relaxed`} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className={labelClass}>Leistungen Spalten-Titel</label>
+                            <input type="text" value={footer.servicesTitle} onChange={e => handleFooterChange('servicesTitle', e.target.value)}
+                              className={inputClass} />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className={labelClass}>Rechtliches Spalten-Titel</label>
+                            <input type="text" value={footer.legalTitle} onChange={e => handleFooterChange('legalTitle', e.target.value)}
+                              className={inputClass} />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {(['serviceLink1', 'serviceLink2', 'serviceLink3', 'serviceLink4'] as const).map((field, i) => (
+                            <div key={field} className="flex flex-col gap-1">
+                              <label className={labelClass}>Footer Leistung {i + 1}</label>
+                              <input type="text" value={footer[field]} onChange={e => handleFooterChange(field, e.target.value)}
+                                className={inputClass} />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {(['legalLink1', 'legalLink2', 'legalLink3'] as const).map((field, i) => (
+                            <div key={field} className="flex flex-col gap-1">
+                              <label className={labelClass}>Rechtliches Link {i + 1}</label>
+                              <input type="text" value={footer[field]} onChange={e => handleFooterChange(field, e.target.value)}
+                                className={inputClass} />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className={labelClass}>Copyright Text nach Jahreszahl</label>
+                          <input type="text" value={footer.copyrightSuffix} onChange={e => handleFooterChange('copyrightSuffix', e.target.value)}
+                            className={inputClass} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
               </div>
 
               {/* Right: Save panel + preview hint */}
@@ -1026,6 +1259,212 @@ export default function AdminView({
               </div>
 
             </div>
+            </div>
+          );
+        })()}
+
+        {/* Tab: Leistungen Content Editor */}
+        {activeTab === 'services' && (() => {
+          const servicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+          return (
+            <div className="flex flex-col gap-6">
+              <div className={workbenchClass}>
+                <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-navy text-brand-orange shadow-xl shadow-primary-navy/15">
+                      <BriefcaseBusiness size={23} />
+                    </div>
+                    <div>
+                      <p className="font-display text-[11px] font-black uppercase tracking-[0.22em] text-brand-orange-dark">Leistungen</p>
+                      <h2 className="mt-1 font-display text-2xl font-black uppercase tracking-tight text-primary-navy">Service Portfolio</h2>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                        Alle Leistungskarten, Modaltexte, Features und der Zusatz-Support-Block der Leistungen-Seite.
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={handleSaveConfig}
+                    className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand-orange px-5 py-3 font-display text-xs font-black uppercase text-white shadow-xl shadow-brand-orange/20 transition hover:-translate-y-0.5 hover:bg-brand-orange-dark">
+                    <Save size={15} />
+                    Leistungen speichern
+                  </button>
+                </div>
+              </div>
+
+              <div className={panelClass}>
+                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
+                  <Type size={17} className="text-brand-orange-dark" />
+                  Seitenkopf
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Eyebrow</label>
+                    <input value={servicesContent.eyebrow} onChange={e => handleServicesContentChange('eyebrow', e.target.value)} className={inputClass} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Titel</label>
+                    <input value={servicesContent.title} onChange={e => handleServicesContentChange('title', e.target.value)} className={inputClass} />
+                  </div>
+                  <div className="flex flex-col gap-1 md:col-span-2">
+                    <label className={labelClass}>Beschreibung</label>
+                    <textarea rows={3} value={servicesContent.description} onChange={e => handleServicesContentChange('description', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {servicesContent.items.map((service, idx) => (
+                  <div key={service.id} className={panelClass}>
+                    <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                      <h3 className={sectionTitleClass}>
+                        <BriefcaseBusiness size={17} className="text-brand-orange-dark" />
+                        Leistung {idx + 1}
+                      </h3>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{service.id}</span>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1">
+                          <label className={labelClass}>Titel</label>
+                          <input value={service.title} onChange={e => handleServiceDetailChange(idx, 'title', e.target.value)} className={inputClass} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className={labelClass}>Tag</label>
+                          <input value={service.tag || ''} onChange={e => handleServiceDetailChange(idx, 'tag', e.target.value)} className={inputClass} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className={labelClass}>Kurzbeschreibung</label>
+                        <textarea rows={2} value={service.shortDesc} onChange={e => handleServiceDetailChange(idx, 'shortDesc', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className={labelClass}>Detailtext</label>
+                        <textarea rows={4} value={service.longDesc} onChange={e => handleServiceDetailChange(idx, 'longDesc', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className={labelClass}>Bild-URL</label>
+                        <input value={service.imageUrl} onChange={e => handleServiceDetailChange(idx, 'imageUrl', e.target.value)} className={inputClass} />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {service.features.map((feature, featureIdx) => (
+                          <div key={featureIdx} className="flex flex-col gap-1">
+                            <label className={labelClass}>Feature {featureIdx + 1}</label>
+                            <input value={feature} onChange={e => handleServiceFeatureChange(idx, featureIdx, e.target.value)} className={inputClass} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className={panelClass}>
+                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
+                  <ShieldCheck size={17} className="text-brand-orange-dark" />
+                  Zusatz-Support Block
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input value={servicesContent.extraEyebrow} onChange={e => handleServicesContentChange('extraEyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
+                  <input value={servicesContent.extraTitle} onChange={e => handleServicesContentChange('extraTitle', e.target.value)} className={inputClass} placeholder="Titel" />
+                  <input value={servicesContent.extraImageUrl} onChange={e => handleServicesContentChange('extraImageUrl', e.target.value)} className={inputClass} placeholder="Bild-URL" />
+                  <input value={servicesContent.extraButtonLabel} onChange={e => handleServicesContentChange('extraButtonLabel', e.target.value)} className={inputClass} placeholder="Button Text" />
+                  <textarea rows={3} value={servicesContent.extraDescription} onChange={e => handleServicesContentChange('extraDescription', e.target.value)} className={`${inputClass} resize-none leading-relaxed md:col-span-2`} placeholder="Beschreibung" />
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Tab: Über Uns Content Editor */}
+        {activeTab === 'about' && (() => {
+          const about = config.about || { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [...DEFAULT_PRICING_CONFIG.about!.testimonials] };
+          return (
+            <div className="flex flex-col gap-6">
+              <div className={workbenchClass}>
+                <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-orange text-white shadow-xl shadow-brand-orange/20">
+                      <Building2 size={23} />
+                    </div>
+                    <div>
+                      <p className="font-display text-[11px] font-black uppercase tracking-[0.22em] text-brand-orange-dark">Über Uns</p>
+                      <h2 className="mt-1 font-display text-2xl font-black uppercase tracking-tight text-primary-navy">Company Story</h2>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                        Firmenvorstellung, Leitbild, Team-Überschriften und Kundenstimmen bearbeiten.
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={handleSaveConfig}
+                    className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand-orange px-5 py-3 font-display text-xs font-black uppercase text-white shadow-xl shadow-brand-orange/20 transition hover:-translate-y-0.5 hover:bg-brand-orange-dark">
+                    <Save size={15} />
+                    Über Uns speichern
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className={panelClass}>
+                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
+                    <Type size={17} className="text-brand-orange-dark" />
+                    Intro & Kennzahlen
+                  </h3>
+                  <div className="flex flex-col gap-4">
+                    <input value={about.eyebrow} onChange={e => handleAboutChange('eyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
+                    <input value={about.title} onChange={e => handleAboutChange('title', e.target.value)} className={inputClass} placeholder="Titel" />
+                    <textarea rows={3} value={about.paragraph1} onChange={e => handleAboutChange('paragraph1', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} placeholder="Absatz 1" />
+                    <textarea rows={3} value={about.paragraph2} onChange={e => handleAboutChange('paragraph2', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} placeholder="Absatz 2" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input value={about.stat1Value} onChange={e => handleAboutChange('stat1Value', e.target.value)} className={inputClass} placeholder="Stat 1 Wert" />
+                      <input value={about.stat1Label} onChange={e => handleAboutChange('stat1Label', e.target.value)} className={inputClass} placeholder="Stat 1 Label" />
+                      <input value={about.stat2Value} onChange={e => handleAboutChange('stat2Value', e.target.value)} className={inputClass} placeholder="Stat 2 Wert" />
+                      <input value={about.stat2Label} onChange={e => handleAboutChange('stat2Label', e.target.value)} className={inputClass} placeholder="Stat 2 Label" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className={panelClass}>
+                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
+                    <ShieldCheck size={17} className="text-brand-orange-dark" />
+                    Leitbild
+                  </h3>
+                  <div className="flex flex-col gap-4">
+                    <input value={about.missionEyebrow} onChange={e => handleAboutChange('missionEyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
+                    <input value={about.missionTitle} onChange={e => handleAboutChange('missionTitle', e.target.value)} className={inputClass} placeholder="Titel" />
+                    <textarea rows={2} value={about.missionPoint1} onChange={e => handleAboutChange('missionPoint1', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} />
+                    <textarea rows={2} value={about.missionPoint2} onChange={e => handleAboutChange('missionPoint2', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} />
+                    <textarea rows={2} value={about.missionPoint3} onChange={e => handleAboutChange('missionPoint3', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} />
+                  </div>
+                </div>
+              </div>
+
+              <div className={panelClass}>
+                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
+                  <Users size={17} className="text-brand-orange-dark" />
+                  Team & Kundenstimmen
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <input value={about.teamTitle} onChange={e => handleAboutChange('teamTitle', e.target.value)} className={inputClass} placeholder="Team Titel" />
+                  <input value={about.teamSubtitle} onChange={e => handleAboutChange('teamSubtitle', e.target.value)} className={inputClass} placeholder="Team Untertitel" />
+                  <input value={about.testimonialsTitle} onChange={e => handleAboutChange('testimonialsTitle', e.target.value)} className={inputClass} placeholder="Testimonials Titel" />
+                  <input value={about.testimonialsSubtitle} onChange={e => handleAboutChange('testimonialsSubtitle', e.target.value)} className={inputClass} placeholder="Testimonials Untertitel" />
+                  <input value={about.recommendationLabel} onChange={e => handleAboutChange('recommendationLabel', e.target.value)} className={inputClass} placeholder="Empfehlungslabel" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {about.testimonials.map((test, idx) => (
+                    <div key={idx} className="rounded-2xl border border-slate-200 bg-white/70 p-4">
+                      <div className="mb-3 flex items-center gap-2 text-brand-orange-dark">
+                        <MessageSquareQuote size={16} />
+                        <span className="font-display text-xs font-black uppercase">Stimme {idx + 1}</span>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <input value={test.name} onChange={e => handleTestimonialChange(idx, 'name', e.target.value)} className={inputClass} placeholder="Name" />
+                        <input value={test.role} onChange={e => handleTestimonialChange(idx, 'role', e.target.value)} className={inputClass} placeholder="Rolle" />
+                        <textarea rows={4} value={test.text} onChange={e => handleTestimonialChange(idx, 'text', e.target.value)} className={`${inputClass} resize-none leading-relaxed`} placeholder="Text" />
+                        <input type="number" min={1} max={5} value={test.stars} onChange={e => handleTestimonialChange(idx, 'stars', Number(e.target.value))} className={inputClass} placeholder="Sterne" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           );
         })()}
