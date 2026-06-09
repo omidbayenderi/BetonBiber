@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useState, FormEvent, ChangeEvent, useCallback } from 'react';
 import {
   KeyRound, Save, RotateCcw, Trash2,
   Layers, Coins, Wrench, ShieldCheck, Mail, Phone,
@@ -25,6 +25,13 @@ import {
   FooterContent,
   ContactConfig
 } from '../lib/pricingState';
+
+const ADMIN_PASS_HASH = import.meta.env.VITE_ADMIN_PASS_HASH as string | undefined;
+
+async function sha256hex(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 interface AdminViewProps {
   requests: QuoteRequest[];
@@ -51,16 +58,20 @@ export default function AdminView({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'services' | 'about' | 'requests'>('calculator');
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = useCallback(async (e: FormEvent) => {
     e.preventDefault();
-    if (password === 'admin123' || password === 'biber2026') {
+    const hash = await sha256hex(password);
+    const match = ADMIN_PASS_HASH
+      ? hash === ADMIN_PASS_HASH
+      : hash === '2996ebb3252e03a2db673029d253dcc1aaaeaa5920361985aac3c9a1bf208921';
+    if (match) {
       setIsAuthenticated(true);
       sessionStorage.setItem('betonbiber_authorized', 'true');
       setLoginError('');
     } else {
       setLoginError('Ungültiges Passwort. Bitte versuchen Sie es erneut.');
     }
-  };
+  }, [password]);
 
   const handleLogout = () => {
     setIsAuthenticated(false);
