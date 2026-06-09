@@ -1,0 +1,125 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { TeamMember, Testimonial, ServiceDetail } from './types';
+
+export const BRAND_LOGO_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGJCefCVG8631UHNysrBoRhV--L1IVntNcggqwFG4IHpmoiuwr76b161gtnqn_tpHrqYCiaM5y2ZQhtBLILJAZKpY7Che5Gb3uPatDZoMqhLDJTHl46AJuXfGOxuwOWbKkQIPN8SSeDUjjEezCDrDTznDxGTjc6-vi2gg9Y5Ie_GSFxqZ9X_01Fb7MIkmULJ506Y_Ho6mxrZrn20r9oKqDFfpxk94J1U6WK8F3at0b-9qpg81-Te7CXoSCdZVobFM_B4AZXrCNW9U';
+
+export const FOOTER_LOGO_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGJCefCVG8631UHNysrBoRhV--L1IVntNcggqwFG4IHpmoiuwr76b161gtnqn_tpHrqYCiaM5y2ZQhtBLILJAZKpY7Che5Gb3uPatDZoMqhLDJTHl46AJuXfGOxuwOWbKkQIPN8SSeDUjjEezCDrDTznDxGTjc6-vi2gg9Y5Ie_GSFxqZ9X_01Fb7MIkmULJ506Y_Ho6mxrZrn20r9oKqDFfpxk94J1U6WK8F3at0b-9qpg81-Te7CXoSCdZVobFM_B4AZXrCNW9U';
+
+export const MINIMAP_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdGvS7DPaIvGILPXM5ow0jYu7gM7lexIMmVrQI4FyD43TK0YaM00cWnWnjeAdkJNV1fcwEcKhftmv2-ZOTd0m_JLXdkP8ke9dWeCn2Hj4BeGFsRCo6JtbvFMbtoz2rSyICOeh3cUOFFcnsjQAHRBJShhuqdshht53LlTmFvboIG0xUiSTBK89MK5Z6eV5Zah1wWAeYlYBpLO97yQ1Wy2d2UetDCgjuoanXbFVD4Be9OyNFHvEMfgnhYI0y7ySBJFW_9bpubTHhatw';
+
+export const BASEMENT_WATERPROOF_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBILNTJD1Ho4PRzi8Iey1Srffd0uh-J127WvzAudeURb1xd44zVWD5CPxme3wxHaj9GJzryWjh8qeArQo0Xgk5wyQbG4hm1ozxMSBUXoYH5qA9rncFKCXUreyV3vMw2j0-YZIUJVOFRh__DxNDWk0RR6hsCwiXayOnUgnt4NfjrO1PD4LVpyCiguKww3C6rKVp0U8u2A9HodeQ-DQIaN50RbxZAzKnXdzhF7aTNaduyYClvVlD8XB_iXRGpc459of15xrSAPQhIuWk';
+
+export const CONCRETE_INJECTION_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDO28jTC7p39lFLiDe4iUdW_Gf8Sws3qSO1cTF_Rrv07iBBtc8yog0ZMfdmLX7XqZepuw1f0TbWsD_zSj54r6DWykwpBIMaKoxfjw6_tsALWqRHg2VgDbU2BY2nciNyWwnDpuh5OuF-G7k-vl_613cPzUVQXZ8GXmF8dGHtor4hPyYwRvC6id3QRoC7ugZyUNaWV0olwipc_bx9vRmAiZNEtzyRHImxxWz5unPc8C1hcP0CbxUOWXYCLUqxTCChs2K80c8s47yExTM';
+
+export const CONCRETE_REPAIR_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAOdtqVL98e_vlTMt7VHs59mnnMV2SUTLOMIeryWbsAN02pZnvHzbCgcA1ByTUVye1yP-1c12WuKYN-b3aNa8APqvs0QNb0Y4XOuxiXqt6qFNPnukRn3q8GixocawqWBXLWYDAsSdyo0ZZQRU3PgsUdXNkSI5AhxQ7oAkEBzxpb6taPwOwUTDNMQT3deKWxOhTIrCdqnVegw0Uc4crKthmCdMIfHR3Z3baapdveczb50K4-ojDdioANw2ZPl9ipEbONcTXGMjZkx58';
+
+export const CONSTRUCTION_HERO_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZyDN_jQ1_L_cOF1iSJIWqWMQDOBmsLVIRHCu68fId-vPzUD-VYhE5_IHGTFEYgg9AVcYepq1Qvr4rE2d0AvfYr6YcBTrwQldTsSSR6hAUqU9o9ZVIwJkb4satEH4TlMFVP6F_Bcyb9hRCvI0hngldBXzZQdJniAJouG4r8dovNh-VH90fkijdkVsermjHCQ_q7sLz6bejr7wJftP4hvqq2VzNXn9xtD0xDuSoj7lwK4BsmqYZqkVMOCv_wdnw4fJVUtYWYR4wUsw';
+
+export const CONCRETE_ARCH_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDdizAVtT7cACJtw_eJ9dG_bn7fRS9bbDz3GsMB0-x0l8ktDgPHs-GwUF_nQJBJ805acHrjKpmyg34Qd7ALU1qOnuVjXwVbxmlVyG6blVkpiaJTH0gFdf_wE1IzN_c1dD2lhQSMO2XC7VHx1uMsYEYfdhJL8VXhRUNdw274VoMFGdQyGAbyaqcF63yPrsAZ-OApIwb2xyTHCqrmvDKTraZCIkf4Ke6WumDdd0urSeDJ_WrAqaxeTyFY9uB1il_J4U9-iHadSYaiCVQ';
+
+export const SOCIAL_FB = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDUYSM1gZGVLh1AYsw9_bNIkbkzc1WvaBWD0aabI1_2gtKA0yo01nsGkA5zUvrWqL9A-GzUK0BiTgpuwmaF1W5VcHIXMLuvpai9spj6O9zOph5bT864PCUgFJvkmIutn0QTg23hMX74bJci9G4o1PqgjKoM6La_ROhKkPXHa0YeCKWPU4w2WEd3aIUf2A0WAbNPELLmrYvkH_6B1oDfmdufadTg89MHzGPUGYLaoviZun5oDIqQfNETPuXphpJfXP56hMcjlqTJfeg';
+export const SOCIAL_IG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAd42yFvWtIhTfWROHOCBqRJosGwjG7u6lSKYeHJKM0NUUc0BX7_ckoI3TB8RCasZGZK6DkUyA0A_HuvmmOwtDCdpRHmHCOd5kqCJRsiKsUEjPfQYIgbB0dyawiCKC1WIAVFBl_-Q3X5EGTAPLeVsGC5hyi74c_shpTR8cncpbP8Z4aZxgMkn22GPwLjZFzHzxhQsvLIy9gz5wgZgPNk7x1Urm-ai0CRJs3C37Ull-QE0ljsLk1wdv_DySj3DYz3hi7cg1h3A4oqrA';
+export const SOCIAL_LI = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAf07JJr_86E7YAPjtQzCSJgomSOIWCif_YGZiGZxgqOrGikiyomndemavk3mAj4eyTBvcAQXNknJ87ys2ksJ6W9Tmtp-VCMT-kmoSU0axaz1fnmF5aaSzjQVrUT0Ht0GHP9rZ5od7QHBTdq0iu9HAbwFKxUIWZ55wpHJKjlmER6R1w4F4E_5tWye2_24W9kOE9YcsekCT75Sabil81WPphjqh12oRx9XdqgGVC7delfG2eIm3sz3kCBFELLT96A0j9pPR_Tq5Zc_8';
+
+export const SERVICES: ServiceDetail[] = [
+  {
+    id: 'kellerabdichtung',
+    title: 'Kellerabdichtung',
+    iconName: 'foundation',
+    shortDesc: 'Wir schützen Ihre Kellerräume und Fundamente dauerhaft vor Feuchtigkeit.',
+    longDesc: 'Wir schützen Ihre Kellerräume und Fundamente dauerhaft vor Feuchtigkeit und drückendem Grundwasser. Mit modernster Technik, positiven und negativen Abdichtungssystemen verlängern wir die Lebensdauer Ihres Objekts nachhaltig und schützen Sie vor drückendem Sickerwasser und nassen Wänden.',
+    features: ['Außenabdichtung (Schwarze Wanne)', 'Innenraum-Feuchteschutz (Negativabdichtung)', 'Fundamentsanierung & Horizontalsperren', 'Dränagesysteme & Rissverpressung'],
+    imageUrl: BASEMENT_WATERPROOF_URL,
+    bgDark: false,
+    tag: 'Empfohlen'
+  },
+  {
+    id: 'riss_sanierung',
+    title: 'Riss-sanierung',
+    iconName: 'architecture',
+    shortDesc: 'Instandsetzung von Rissen in Betonoberflächen mittels Hochdruck-Injektionsverfahren.',
+    longDesc: 'Instandsetzung von statischen und dynamischen Rissen in Betonoberflächen mittels modernen Harz- und Polyurethan-Hochdruckinjektionen. Diese ingenieurtechnischen Lösungen stellen die volle statische Belastbarkeit, Dichtigkeit und dauerhafte Tragfähigkeit Ihres Gebäudes zuverlässig wieder her.',
+    features: ['Hochdruck-Epoxidharzinjektion', 'Risselastische Polyurethanschließung', 'Kraftschlüssiges Verpressen von Bauteilen', 'Statische Lastabtragungswiederherstellung'],
+    imageUrl: CONCRETE_INJECTION_URL,
+    bgDark: true,
+    tag: 'Präzision'
+  },
+  {
+    id: 'betonsanierung',
+    title: 'Betonsanierung',
+    iconName: 'precision_manufacturing',
+    shortDesc: 'Anerkannte Erhöhung der mechanischen Belastbarkeit von abgenutzten Flächen.',
+    longDesc: 'Wir erhöhen die mechanische und chemische Widerstandsfähigkeit von abgenutzten oder geschädigten Betonflächen. Durch professionellen Korrosionsschutz für die Bewehrung, innovative Feinspachtelungen und widerstandsfähige Epoxid- oder Polyurethanbeschichtungen sanieren wir Ihre Hallenböden und Garagen grundlegend.',
+    features: ['Bewehrungsentrostung & Betonersatz', 'Karbonatisierungsbremse-Beschichtung', 'Industriebodenabdichtung', 'Ästhetische Beton-Veredelung'],
+    imageUrl: CONCRETE_REPAIR_URL,
+    bgDark: false,
+    tag: 'Industriell'
+  },
+  {
+    id: 'schimmelbeseitigung',
+    title: 'Schimmelbeseitigung',
+    iconName: 'health_and_safety',
+    shortDesc: 'Wissenschaftlich fundierte Analyse und dauerhafte Sanierung von Sporen.',
+    longDesc: 'Wir analysieren gesundheitsgefährdende Schimmelpilzbildungen mit neuesten mikrobiologischen Abklatschproben und beseitigen sie an der Wurzel. Durch Aufmauerung von intelligenten Silikatplatten und dampfdiffusionsoffenen Mineralbeschichtungen verhindern wir künftige feuchtigkeitsbedingte Ansiedlungen permanent.',
+    features: ['Zertifizierte Schimmelanalyse & Sporenmessung', 'Tiefenwirksame Desinfektion & Reinigung', 'Wohnklimatisierende Kalziumsilikatplatten', '0% Rückfallquote durch physikalische Barrieren'],
+    imageUrl: BASEMENT_WATERPROOF_URL, // use waterproofing background
+    bgDark: false,
+    tag: 'Gesundheit'
+  }
+];
+
+export const TEAM: TeamMember[] = [
+  {
+    name: 'Klaus Weber',
+    role: 'Chefingenieur',
+    description: 'Über 15 Jahre Erfahrung im Bautenschutz und in der statischen Sanierung komplexer Hoch- und Tiefbauwerke.',
+    avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA3nR83pI_u8qbFz5mZWNnuXg4CgQwIohd4tyz4CgLQy2-1_pXRRZVa1n7Ju5mpWCe9tqAwYxJeX9a1S9qZ340XSQyfrdt9aJvWZNpPSSwq7Uw5gi9iEymdSrE1aWO_YH2Lh8iN7jXFkrPVERv30i-HYADXyKvo0phHMa_xtWGnICDVCsKdJXlSi_wQP7t5-ExVFNgmJ77THkEIR0oFU4Pk-ibqNCwE4KAt7FeQuQnMvJoeNx3VFrvDRsZEBC64sCD-BxyxXUWW14w',
+    photoAlt: 'Klaus Weber Chefingenieur'
+  },
+  {
+    name: 'Helga Richter',
+    role: 'Abdichtungsexpertin',
+    description: 'Spezialisiert auf thermografische Leckortung, Injektionstechniken und moderne Verbundmembranen.',
+    avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCVbSmW08AninJUBEr07FqAkZUASZIW1NXAS51idIHX5pyMwAKo5P8VptSGWcwuDYuHjBt4usuJBoOX_c5hy-hYYrfYRVVChY579P5Sm7SaLNs760rd4zEqpMDA3BivJVesEc0PctYlham-aeqdKOO68t4I_YRduxBQfd-P_KWUwLRzQRf8cQuk_l3puEDPUwYwS6PvoPMPauKuV53L-p1R76jnRyG0jdypkUdq_tIApX_yEjT6SVVrnWNDNwylVyHrlQtnZlDI2us',
+    photoAlt: 'Helga Richter Abdichtungsexpertin'
+  },
+  {
+    name: 'Hans Schmidt',
+    role: 'Technischer Berater',
+    description: 'Experte für Schadensgutachterberichte, bauphysikalische Berechnungen und Materialzulassungen nach DIN-Norm.',
+    avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjzZFNRcOqjnJ-csEXRVCx7BdLwIYwAC13GmbEmm2_CMGHW1qTGrHXzwdPCV8m9BD0oLWlZWgxwJNlAi1KWH60Dvl4eDxSq7QRiEQVafgX-bORRRXlxbT1Egv17eiN6_PQo11H1_KPVAq-wCB-SJ77THeJ-9Z74nbpHhLLXs3UnTL0NvKD9aVOooohcPoz64IUIjdRK6jwXBZFFlsAcLKbzmCIIFYsjXtu82BB_Lr7z4sHIkmIIoqcO2Hu26UW_oSTxcZ1Qw16AGk',
+    photoAlt: 'Hans Schmidt Technischer Berater'
+  },
+  {
+    name: 'Lukas Müller',
+    role: 'Bauleiter',
+    description: 'Unser Mann für die reibungslose Koordination auf der Baustelle, Qualitätskontrolle und Arbeitssicherheit vor Ort.',
+    avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBB_Dh3dRE-ojYl4Z-IhUEAw08LPMZ-iUgn50CPzQKeE5nv0yOICy2MtY2gtGlKVgo_27pYfStVzN8XNBKA-5mWQov-VgATWL4_wP4Hl5SHNLzErNPxexqbP40xdcnSIUGk_WYlF-unuyqqP6w3sK0LLBzR-BXCqcjVRi5gxtfMndcVgdDpxAFlZBFQd3c7_UaObBvnZ7b2GSPqngN4nPZy2s6OkDMmJwSvLTz-1VYr9gfz0j04fg0s6aTENBrwbhDW2OOphra0pvY',
+    photoAlt: 'Lukas Müller Bauleiter'
+  }
+];
+
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    name: 'Andreas Müller',
+    role: 'Hausverwalter',
+    text: 'Das Problem mit dem Wassereintritt in unserem Keller wurde vom Betonbiber-Team durch ein professionelles Injektionssystem dauerhaft gelöst. Vielen Dank!',
+    stars: 5
+  },
+  {
+    name: 'Michael Schmidt',
+    role: 'Betriebsleiter',
+    text: 'Wir haben bei der Instandsetzung unserer Industriehalle zusammengearbeitet. Ihre gründliche, disziplinierte und planvolle Arbeitsweise hat uns sehr beeindruckt.',
+    stars: 5
+  },
+  {
+    name: 'Sarah Wagner',
+    role: 'Architektin',
+    text: 'Nach der Terrassenabdichtung an unserem Altbau haben wir den ersten Winter absolut sorgenfrei verbracht. Preis-Leistung ist top für die gebotene Ingenieurpräzision.',
+    stars: 5
+  }
+];
