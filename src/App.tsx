@@ -16,7 +16,8 @@ import NotFoundView from './views/NotFoundView';
 import SuccessModal from './components/SuccessModal';
 import CookieConsent from './components/CookieConsent';
 
-const SITE_URL = 'https://betonbiber.de';
+const SITE_URL = 'https://omidbayenderi.github.io/BetonBiber';
+const APP_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const PAGE_ROUTES: Record<Exclude<PageId, 'not_found'>, string> = {
   home: '/',
@@ -69,7 +70,10 @@ function getPageFromLocation(): PageId {
     sessionStorage.removeItem('betonbiber_redirect_path');
     return ROUTE_PAGES[redirectedPath] || 'not_found';
   }
-  const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/';
+  const pathWithoutBase = APP_BASE_PATH && window.location.pathname.startsWith(APP_BASE_PATH)
+    ? window.location.pathname.slice(APP_BASE_PATH.length) || '/'
+    : window.location.pathname;
+  const normalizedPath = pathWithoutBase.replace(/\/+$/, '') || '/';
   return ROUTE_PAGES[normalizedPath] || 'not_found';
 }
 
@@ -202,8 +206,9 @@ export default function App() {
     setActivePage(page);
     if (page !== 'not_found') {
       const path = PAGE_ROUTES[page];
-      if (window.location.pathname !== path) {
-        window.history.pushState({}, '', path);
+      const browserPath = `${APP_BASE_PATH}${path === '/' ? '/' : path}`;
+      if (window.location.pathname !== browserPath) {
+        window.history.pushState({}, '', browserPath);
       }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });

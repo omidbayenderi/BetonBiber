@@ -93,15 +93,16 @@ For production content management, connect the admin panel to persistent storage
 
 ## SEO And Deployment
 
-The SEO files assume the canonical domain:
+The current GitHub Pages deployment uses:
 
 ```text
-https://betonbiber.de
+https://omidbayenderi.github.io/BetonBiber
 ```
 
-If the final domain differs, update:
+If a custom domain such as `https://betonbiber.de` is connected later, update:
 
 - `SITE_URL` in `src/App.tsx`
+- `base` in `vite.config.ts`
 - canonical and Open Graph URL in `index.html`
 - URLs in `public/sitemap.xml`
 - sitemap URL in `public/robots.txt`

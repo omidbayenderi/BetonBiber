@@ -6,8 +6,12 @@
     <meta name="robots" content="noindex, follow" />
     <title>404 | BetonBiber</title>
     <script>
-      sessionStorage.setItem('betonbiber_redirect_path', window.location.pathname.replace(/\/+$/, '') || '/');
-      window.location.replace('/');
+      var base = '/BetonBiber';
+      var path = window.location.pathname.startsWith(base)
+        ? window.location.pathname.slice(base.length)
+        : window.location.pathname;
+      sessionStorage.setItem('betonbiber_redirect_path', path.replace(/\/+$/, '') || '/');
+      window.location.replace(base + '/');
     </script>
   </head>
   <body>

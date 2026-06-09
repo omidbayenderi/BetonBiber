@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /amit
+Disallow: /BetonBiber/amit
 
-Sitemap: https://betonbiber.de/sitemap.xml
+Sitemap: https://omidbayenderi.github.io/BetonBiber/sitemap.xml
