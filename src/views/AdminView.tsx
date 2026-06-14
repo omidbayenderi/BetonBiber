@@ -206,6 +206,23 @@ export default function AdminView({
     });
   };
 
+  const handleAddTeamMember = () => {
+    const newMember: TeamMember = {
+      name: '',
+      role: '',
+      description: '',
+      avatarUrl: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12',
+      photoAlt: ''
+    };
+    setConfig({ ...config, team: [...(config.team || []), newMember] });
+  };
+
+  const handleDeleteTeamMember = (index: number) => {
+    if (!confirm('Diesen Experten wirklich entfernen?')) return;
+    const updated = (config.team || []).filter((_, i) => i !== index);
+    setConfig({ ...config, team: updated });
+  };
+
   const handleTeamMemberChange = (index: number, field: keyof TeamMember, val: string) => {
     const updatedTeam = [...(config.team || [])];
     if (updatedTeam[index]) {
@@ -678,13 +695,33 @@ export default function AdminView({
                   <Users size={17} className="text-brand-orange-dark" />
                   <span>3. Unser Expertenteam bearbeiten</span>
                 </h3>
-                <p className="font-sans text-xs text-slate-500 mb-6 leading-relaxed">
-                  Hier können Sie die Namen, Rollen, Kurzbeschreibungen und Fotos/Avatare der 4 Experten anpassen, die sowohl auf der Startseite als auch auf der "Über Uns" Seite live angezeigt werden.
-                </p>
+                <div className="flex items-center justify-between mb-6">
+                  <p className="font-sans text-xs text-slate-500 leading-relaxed">
+                    Namen, Rollen, Beschreibungen und Fotos der Experten anpassen.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddTeamMember}
+                    className="flex items-center gap-1.5 rounded-xl bg-brand-orange px-3 py-2 font-display text-[11px] font-black uppercase tracking-wider text-white hover:bg-brand-orange-dark transition shrink-0"
+                  >
+                    <span>+ Experte hinzufügen</span>
+                  </button>
+                </div>
 
                 <div className="flex flex-col gap-6">
                   {(config.team || []).map((member, idx) => (
-                    <div key={idx} className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/80 p-4 shadow-sm flex flex-col lg:flex-row gap-4 items-start">
+                    <div key={idx} className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/80 p-4 shadow-sm flex flex-col lg:flex-row gap-4 items-start relative">
+                      {/* Delete button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTeamMember(idx)}
+                        title="Experten entfernen"
+                        className="absolute top-3 right-3 flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 font-display text-[10px] font-black uppercase tracking-wider text-red-500 hover:bg-red-100 transition"
+                      >
+                        <Trash2 size={11} />
+                        <span>Entfernen</span>
+                      </button>
+
                       {/* Avatar preview */}
                       <div className="flex w-full flex-row items-center gap-3 lg:w-48 lg:flex-col lg:items-stretch">
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-200 shadow-xl shadow-slate-900/15 lg:h-32 lg:w-full">
