@@ -298,6 +298,10 @@ export default function KontaktView({
               onSubmit={handleSubmit}
               className="bg-white border-4 border-primary-navy p-6 md:p-8 rounded-xl shadow-md flex flex-col gap-5"
             >
+              {/* Hidden fields read by EmailJS template */}
+              <input type="hidden" name="to_email" value={pricingConfig.contact?.email || 'anfrage@betonbiber.de'} />
+              <input type="hidden" name="company_name" value={pricingConfig.contact?.companyName || 'BetonBiber'} />
+
               <div className="flex flex-col">
                 <h3 className="font-display font-black text-xl text-primary-navy uppercase tracking-tight">
                   Angebot anfordern
