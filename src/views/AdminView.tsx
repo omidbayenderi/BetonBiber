@@ -569,11 +569,6 @@ export default function AdminView({
                 </button>
               </form>
 
-              <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center">
-                <p className="font-sans text-[11px] font-bold leading-normal text-slate-500">
-                  Dev-Hinweis: <span className="font-mono font-extrabold text-brand-orange-dark select-all">admin123</span> oder <span className="font-mono font-extrabold text-brand-orange-dark select-all">biber2026</span>
-                </p>
-              </div>
             </div>
           </div>
         </div>

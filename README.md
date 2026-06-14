@@ -74,7 +74,7 @@ The dev server is configured for port `3000`. If that port is busy, Vite will of
 
 Configure the following variables in your `.env` file for local development or as Secrets in your deployment environment:
 
-- `VITE_ADMIN_PASS_HASH`: The SHA-256 hash of your admin panel password. If not provided, it defaults to the hash of `biber2026`.
+- `VITE_ADMIN_PASS_HASH`: The SHA-256 hash of your admin panel password.
 - `VITE_EMAILJS_SERVICE_ID`: EmailJS Service ID for contact form delivery.
 - `VITE_EMAILJS_TEMPLATE_ID`: EmailJS Template ID.
 - `VITE_EMAILJS_PUBLIC_KEY`: EmailJS Public Key.
@@ -97,9 +97,7 @@ npm run build
 
 The admin panel is available at `/amit`.
 
-Password verification uses SHA-256 hashing to secure the client-side gate:
-- Default local/dev password: `biber2026` (whose hash is configured in the code as a fallback)
-- To customize the admin password, set the `VITE_ADMIN_PASS_HASH` environment variable with the SHA-256 hash of your chosen password.
+Password verification uses SHA-256 hashing for the client-side gate. Configure `VITE_ADMIN_PASS_HASH` with the SHA-256 hash of your chosen password in local `.env` files and deployment secrets.
 
 ## Content Storage
 
