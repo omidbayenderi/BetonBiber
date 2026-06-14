@@ -9,12 +9,14 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import HomeView from './views/HomeView';
 import LeistungenView from './views/LeistungenView';
+import GalerieView from './views/GalerieView';
 import UberUnsView from './views/UberUnsView';
 import KontaktView from './views/KontaktView';
 import AdminView from './views/AdminView';
 import NotFoundView from './views/NotFoundView';
 import SuccessModal from './components/SuccessModal';
 import CookieConsent from './components/CookieConsent';
+import { getPricingConfig, PageVisibilityContent } from './lib/pricingState';
 
 const SITE_URL = 'https://omidbayenderi.github.io/BetonBiber';
 const APP_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -22,6 +24,7 @@ const APP_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
 const PAGE_ROUTES: Record<Exclude<PageId, 'not_found'>, string> = {
   home: '/',
   leistungen: '/leistungen',
+  galerie: '/galerie',
   uber_uns: '/ueber-uns',
   kontakt: '/kontakt',
   admin: '/amit'
@@ -30,6 +33,7 @@ const PAGE_ROUTES: Record<Exclude<PageId, 'not_found'>, string> = {
 const ROUTE_PAGES: Record<string, PageId> = {
   '/': 'home',
   '/leistungen': 'leistungen',
+  '/galerie': 'galerie',
   '/ueber-uns': 'uber_uns',
   '/kontakt': 'kontakt',
   '/amit': 'admin'
@@ -43,6 +47,10 @@ const PAGE_SEO: Record<PageId, { title: string; description: string; robots?: st
   leistungen: {
     title: 'Leistungen | Kellerabdichtung, Riss-sanierung & Betonsanierung',
     description: 'Entdecken Sie die BetonBiber Leistungen: Kellerabdichtung, Riss-sanierung, Betonsanierung, Schimmelbeseitigung und technische Schadensanalyse.'
+  },
+  galerie: {
+    title: 'Galerie | BetonBiber Projektarbeiten',
+    description: 'Sehen Sie ausgewählte BetonBiber Projektbilder aus Abdichtung, Betonsanierung, Rückbau, Fugen Sanierung und Balkonarbeiten.'
   },
   uber_uns: {
     title: 'Über uns | BetonBiber Bautenschutz-Spezialisten',
@@ -90,6 +98,7 @@ function setOrCreateMeta(selector: string, attrs: Record<string, string>) {
 
 export default function App() {
   const [activePage, setActivePage] = useState<PageId>(() => getPageFromLocation());
+  const [pageVisibility, setPageVisibility] = useState<PageVisibilityContent>(() => getPricingConfig().pageVisibility || {});
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   
   // Storage for export variables from calculator to contact form
@@ -130,8 +139,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const seo = PAGE_SEO[activePage];
-    const canonicalPath = activePage !== 'not_found' && activePage !== 'admin' ? PAGE_ROUTES[activePage] : window.location.pathname;
+    const handleConfigUpdated = () => {
+      setPageVisibility(getPricingConfig().pageVisibility || {});
+    };
+    window.addEventListener('pricing_config_updated', handleConfigUpdated);
+    return () => window.removeEventListener('pricing_config_updated', handleConfigUpdated);
+  }, []);
+
+  const isPageHidden = (page: PageId) => {
+    if (page === 'admin' || page === 'not_found') return false;
+    if (page === 'home') return Boolean(pageVisibility.hideHome);
+    if (page === 'leistungen') return Boolean(pageVisibility.hideLeistungen);
+    if (page === 'galerie') return Boolean(pageVisibility.hideGalerie);
+    if (page === 'uber_uns') return Boolean(pageVisibility.hideUberUns);
+    if (page === 'kontakt') return Boolean(pageVisibility.hideKontakt);
+    return false;
+  };
+
+  const displayedPage: PageId = isPageHidden(activePage) ? 'not_found' : activePage;
+
+  useEffect(() => {
+    const seo = PAGE_SEO[displayedPage];
+    const canonicalPath = displayedPage !== 'not_found' && displayedPage !== 'admin' ? PAGE_ROUTES[displayedPage] : window.location.pathname;
     const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
 
     document.title = seo.title;
@@ -141,7 +170,7 @@ export default function App() {
     setOrCreateMeta('meta[property="og:title"]', { property: 'og:title', content: seo.title });
     setOrCreateMeta('meta[property="og:description"]', { property: 'og:description', content: seo.description });
     setOrCreateMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
-  }, [activePage]);
+  }, [displayedPage]);
 
   // Save requests to local storage
   const saveRequests = (updatedList: QuoteRequest[]) => {
@@ -203,9 +232,10 @@ export default function App() {
 
   // Safe navigation scroll-to-top handler
   const handleNavigate = (page: PageId) => {
-    setActivePage(page);
-    if (page !== 'not_found') {
-      const path = PAGE_ROUTES[page];
+    const nextPage = isPageHidden(page) ? 'not_found' : page;
+    setActivePage(nextPage);
+    if (nextPage !== 'not_found') {
+      const path = PAGE_ROUTES[nextPage];
       const browserPath = `${APP_BASE_PATH}${path === '/' ? '/' : path}`;
       if (window.location.pathname !== browserPath) {
         window.history.pushState({}, '', browserPath);
@@ -222,11 +252,12 @@ export default function App() {
         activePage={activePage} 
         navigateTo={handleNavigate}
         openEstimator={() => handleNavigate('home')}
+        pageVisibility={pageVisibility}
       />
 
       {/* 2. Main Content Routing Pages */}
       <main className="flex-grow">
-        {activePage === 'home' && (
+        {displayedPage === 'home' && (
           <HomeView 
             navigateTo={handleNavigate}
             openEstimator={() => handleNavigate('home')}
@@ -234,18 +265,22 @@ export default function App() {
           />
         )}
 
-        {activePage === 'leistungen' && (
+        {displayedPage === 'leistungen' && (
           <LeistungenView 
             navigateTo={handleNavigate}
             onSelectServiceForContact={handleSelectServiceForContact}
           />
         )}
 
-        {activePage === 'uber_uns' && (
+        {displayedPage === 'galerie' && (
+          <GalerieView />
+        )}
+
+        {displayedPage === 'uber_uns' && (
           <UberUnsView />
         )}
 
-        {activePage === 'kontakt' && (
+        {displayedPage === 'kontakt' && (
           <KontaktView 
             requests={requests}
             onAddRequest={handleAddRequest}
@@ -257,7 +292,7 @@ export default function App() {
           />
         )}
 
-        {activePage === 'admin' && (
+        {displayedPage === 'admin' && (
           <AdminView 
             requests={requests}
             onDeleteRequest={handleDeleteRequest}
@@ -266,7 +301,7 @@ export default function App() {
           />
         )}
 
-        {activePage === 'not_found' && (
+        {displayedPage === 'not_found' && (
           <NotFoundView navigateTo={handleNavigate} />
         )}
       </main>

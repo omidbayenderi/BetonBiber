@@ -9,6 +9,7 @@ import { PageId } from '../types';
 import { TEAM } from '../constants';
 import EstimateCalculator from '../components/EstimateCalculator';
 import { getPricingConfig, HomepageContent, DEFAULT_PRICING_CONFIG } from '../lib/pricingState';
+import { hasAnyText, hasHomepageFeatureContent, hasHomepageStatContent, hasTeamMemberContent, hasText } from '../lib/contentVisibility';
 
 interface HomeViewProps {
   navigateTo: (page: PageId) => void;
@@ -34,18 +35,25 @@ export default function HomeView({ navigateTo, openEstimator, onExportToContact 
     };
   }, []);
 
-  const teamList = pricingConfig.team || TEAM;
+  const teamList = (pricingConfig.team || TEAM).filter(hasTeamMemberContent);
   const hp: HomepageContent = pricingConfig.homepage || DEFAULT_PRICING_CONFIG.homepage!;
+  const heroStats = hp.hideStats ? [] : [hp.stat1, hp.stat2, hp.stat3].filter(hasHomepageStatContent);
+  const features = hp.hideCompetences ? [] : [hp.feature1, hp.feature2, hp.feature3].filter(hasHomepageFeatureContent);
+  const hasHeroCopy = !hp.hideHero && hasAnyText(hp.heroBadge, hp.heroTitle, hp.heroHighlight, hp.heroDescription);
+  const hasHeroImage = !hp.hideHero && hasText(hp.heroImageUrl);
+  const hasVisibleHeroSection = hasHeroCopy || hasHeroImage || heroStats.length > 0;
+  const hasCompetenceCopy = !hp.hideCompetences && (hasAnyText(hp.featureTitle, hp.featureDescription) || features.length > 0);
+  const hasTeamTeaser = !hp.hideTeamTeaser && teamList.length > 0;
   return (
     <div className="flex flex-col w-full" id="home-view-wrapper">
       
       {/* 1. HERO SECTION WITH IMAGE ASSET */}
-      <section 
+      {hasVisibleHeroSection && <section 
         className="relative bg-primary-navy text-white py-24 md:py-32 px-6 overflow-hidden flex items-center" 
         id="home-hero-section"
       >
         {/* Real asset background image */}
-        <div className="absolute inset-0 z-0">
+        {hasHeroImage && <div className="absolute inset-0 z-0">
           <img
             src={hp.heroImageUrl}
             alt="Betonbiber Bautenschutz Baustelle"
@@ -53,23 +61,23 @@ export default function HomeView({ navigateTo, openEstimator, onExportToContact 
             referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary-navy via-primary-navy/90 to-transparent" />
-        </div>
+        </div>}
 
         <div className="max-w-[1240px] mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            <span className="self-start bg-brand-orange/10 text-brand-orange font-sans font-bold text-xs uppercase px-3.5 py-1.5 rounded-full flex items-center gap-1.5 border border-brand-orange/20 backdrop-blur-sm">
+          {hasHeroCopy && <div className="lg:col-span-8 flex flex-col gap-6">
+            {hasText(hp.heroBadge) && <span className="self-start bg-brand-orange/10 text-brand-orange font-sans font-bold text-xs uppercase px-3.5 py-1.5 rounded-full flex items-center gap-1.5 border border-brand-orange/20 backdrop-blur-sm">
               <Sparkles size={12} />
               <span>{hp.heroBadge}</span>
-            </span>
-            <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-[64px] text-white tracking-tight leading-[1.08]">
-              {hp.heroTitle.split('\n').map((line, i) => (
+            </span>}
+            {hasAnyText(hp.heroTitle, hp.heroHighlight) && <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-[64px] text-white tracking-tight leading-[1.08]">
+              {hasText(hp.heroTitle) && hp.heroTitle.split('\n').map((line, i) => (
                 <span key={i}>{line}<br /></span>
               ))}
-              <span className="text-brand-orange">{hp.heroHighlight}</span>
-            </h1>
-            <p className="font-sans text-base md:text-lg text-gray-300 max-w-xl leading-relaxed">
+              {hasText(hp.heroHighlight) && <span className="text-brand-orange">{hp.heroHighlight}</span>}
+            </h1>}
+            {hasText(hp.heroDescription) && <p className="font-sans text-base md:text-lg text-gray-300 max-w-xl leading-relaxed">
               {hp.heroDescription}
-            </p>
+            </p>}
 
             <div className="flex flex-wrap gap-4 mt-2">
               <button
@@ -88,27 +96,21 @@ export default function HomeView({ navigateTo, openEstimator, onExportToContact 
                 Unsere Leistungen entdecken
               </button>
             </div>
-          </div>
+          </div>}
 
-          <div className="lg:col-span-4 grid grid-cols-2 gap-4">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded text-left">
-              <p className="font-display font-black text-3xl text-brand-orange leading-none">{hp.stat1.value}</p>
-              <p className="font-sans text-xs text-gray-400 mt-2 uppercase font-semibold">{hp.stat1.label}</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded text-left">
-              <p className="font-display font-black text-3xl text-brand-orange leading-none">{hp.stat2.value}</p>
-              <p className="font-sans text-xs text-gray-400 mt-2 uppercase font-semibold">{hp.stat2.label}</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded text-left col-span-2">
-              <p className="font-display font-black text-2xl text-emerald-400 leading-none">{hp.stat3.value}</p>
-              <p className="font-sans text-xs text-gray-300 mt-2">{hp.stat3.label}</p>
-            </div>
-          </div>
+          {heroStats.length > 0 && <div className="lg:col-span-4 grid grid-cols-2 gap-4">
+            {heroStats.map((stat, index) => (
+              <div key={index} className={`bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded text-left ${index === 2 || heroStats.length === 1 ? 'col-span-2' : ''}`}>
+                {hasText(stat.value) && <p className={`font-display font-black ${index === 2 ? 'text-2xl text-emerald-400' : 'text-3xl text-brand-orange'} leading-none`}>{stat.value}</p>}
+                {hasText(stat.label) && <p className={`font-sans text-xs mt-2 ${index === 2 ? 'text-gray-300' : 'text-gray-400 uppercase font-semibold'}`}>{stat.label}</p>}
+              </div>
+            ))}
+          </div>}
         </div>
-      </section>
+      </section>}
 
       {/* 2. THE DYNAMIC CALCULATOR COMPONENT */}
-      <section className="bg-brand-bg py-16 md:py-20 px-6" id="home-estimator-section">
+      {!hp.hideEstimator && <section className="bg-brand-bg py-16 md:py-20 px-6" id="home-estimator-section">
         <div className="max-w-[1240px] mx-auto">
           <div className="text-center max-w-xl mx-auto mb-12 flex flex-col items-center gap-3">
             <h2 className="font-display font-black text-2xl md:text-3xl text-primary-navy uppercase tracking-tight">
@@ -124,58 +126,44 @@ export default function HomeView({ navigateTo, openEstimator, onExportToContact 
 
           <EstimateCalculator onExportToContact={onExportToContact} />
         </div>
-      </section>
+      </section>}
 
       {/* 3. CORE CORE COMPETENCES/VALUE PROPOSITIONS */}
-      <section className="bg-white py-16 md:py-24 px-6 border-b border-gray-100" id="home-competences-section">
+      {(hasCompetenceCopy || hasTeamTeaser) && <section className="bg-white py-16 md:py-24 px-6 border-b border-gray-100" id="home-competences-section">
         <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           
-          <div className="flex flex-col gap-6">
+          {hasCompetenceCopy && <div className="flex flex-col gap-6">
             <span className="self-start text-xs font-sans font-bold text-brand-orange bg-brand-orange/10 px-3 py-1 rounded">
               WARUM BETONBIBER?
             </span>
-            <h2 className="font-display font-black text-3xl md:text-4xl text-primary-navy uppercase tracking-tight leading-tight">
+            {hasText(hp.featureTitle) && <h2 className="font-display font-black text-3xl md:text-4xl text-primary-navy uppercase tracking-tight leading-tight">
               {hp.featureTitle}
-            </h2>
-            <p className="font-sans text-sm md:text-base text-brand-text-muted leading-relaxed">
+            </h2>}
+            {hasText(hp.featureDescription) && <p className="font-sans text-sm md:text-base text-brand-text-muted leading-relaxed">
               {hp.featureDescription}
-            </p>
+            </p>}
 
-            <div className="flex flex-col gap-4 mt-2">
-              <div className="flex gap-4 items-start">
+            {features.length > 0 && <div className="flex flex-col gap-4 mt-2">
+              {features.map((feature, index) => {
+                const icons = [Award, ShieldAlert, FileSpreadsheet];
+                const Icon = icons[index] || Award;
+                return (
+                  <div key={index} className="flex gap-4 items-start">
                 <div className="text-brand-orange mt-0.5 shrink-0">
-                  <Award size={22} />
+                  <Icon size={22} />
                 </div>
                 <div>
-                  <h4 className="font-display font-bold text-base text-primary-navy">{hp.feature1.title}</h4>
-                  <p className="font-sans text-sm text-brand-text-muted mt-1">{hp.feature1.description}</p>
+                  {hasText(feature.title) && <h4 className="font-display font-bold text-base text-primary-navy">{feature.title}</h4>}
+                  {hasText(feature.description) && <p className="font-sans text-sm text-brand-text-muted mt-1">{feature.description}</p>}
                 </div>
               </div>
-
-              <div className="flex gap-4 items-start">
-                <div className="text-brand-orange mt-0.5 shrink-0">
-                  <ShieldAlert size={22} />
-                </div>
-                <div>
-                  <h4 className="font-display font-bold text-base text-primary-navy">{hp.feature2.title}</h4>
-                  <p className="font-sans text-sm text-brand-text-muted mt-1">{hp.feature2.description}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 items-start">
-                <div className="text-brand-orange mt-0.5 shrink-0">
-                  <FileSpreadsheet size={22} />
-                </div>
-                <div>
-                  <h4 className="font-display font-bold text-base text-primary-navy">{hp.feature3.title}</h4>
-                  <p className="font-sans text-sm text-brand-text-muted mt-1">{hp.feature3.description}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+                );
+              })}
+            </div>}
+          </div>}
 
           {/* Expert team teaser grid */}
-          <div className="bg-brand-bg rounded-xl border-4 border-primary-navy p-8 relative flex flex-col justify-between">
+          {hasTeamTeaser && <div className="bg-brand-bg rounded-xl border-4 border-primary-navy p-8 relative flex flex-col justify-between">
             <div>
               <h3 className="font-display font-black text-xl text-primary-navy uppercase mb-2">Unser Expertenteam steht bereit</h3>
               <p className="font-sans text-xs text-brand-text-muted mb-8 italic">
@@ -185,14 +173,14 @@ export default function HomeView({ navigateTo, openEstimator, onExportToContact 
               <div className="grid grid-cols-2 gap-4">
                 {teamList.slice(0, 2).map((member, i) => (
                   <div key={i} className="bg-white p-4 rounded-lg border border-gray-250">
-                    <img 
+                    {hasText(member.avatarUrl) && <img 
                       src={member.avatarUrl} 
                       alt={member.photoAlt} 
                       className="w-12 h-12 rounded-full object-cover border-2 border-primary-navy mb-3"
                       referrerPolicy="no-referrer"
-                    />
-                    <h5 className="font-display font-bold text-xs text-primary-navy truncate">{member.name}</h5>
-                    <p className="font-sans text-xs text-brand-orange-dark font-bold uppercase tracking-wider">{member.role}</p>
+                    />}
+                    {hasText(member.name) && <h5 className="font-display font-bold text-xs text-primary-navy truncate">{member.name}</h5>}
+                    {hasText(member.role) && <p className="font-sans text-xs text-brand-orange-dark font-bold uppercase tracking-wider">{member.role}</p>}
                   </div>
                 ))}
               </div>
@@ -211,10 +199,10 @@ export default function HomeView({ navigateTo, openEstimator, onExportToContact 
                 <ArrowUpRight size={14} />
               </button>
             </div>
-          </div>
+          </div>}
 
         </div>
-      </section>
+      </section>}
 
     </div>
   );

@@ -8,6 +8,7 @@ import { SERVICES, CONCRETE_ARCH_URL } from '../constants';
 import { PageId, ServiceDetail } from '../types';
 import { Info, HelpCircle, ArrowRight, ShieldCheck, HeartPulse, Hammer, Droplets, ZoomIn, X } from 'lucide-react';
 import { getPricingConfig } from '../lib/pricingState';
+import { hasAnyText, hasServiceContent, hasText } from '../lib/contentVisibility';
 
 interface LeistungenViewProps {
   navigateTo: (page: PageId) => void;
@@ -30,7 +31,14 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
   }, []);
 
   const servicesContent = pricingConfig.servicesContent;
-  const serviceList = servicesContent?.items || SERVICES;
+  const serviceList = servicesContent?.hideServices ? [] : (servicesContent?.items || SERVICES).filter(hasServiceContent);
+  const hasPageHeader = !servicesContent?.hideHeader && hasAnyText(servicesContent?.eyebrow, servicesContent?.title, servicesContent?.description);
+  const hasExtraBlock = !servicesContent?.hideExtra && hasAnyText(
+    servicesContent?.extraEyebrow,
+    servicesContent?.extraTitle,
+    servicesContent?.extraDescription,
+    servicesContent?.extraButtonLabel
+  );
 
   const getFilteredServices = () => {
     switch (selectedFilter) {
@@ -69,20 +77,20 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
       <div className="max-w-[1240px] w-full flex flex-col gap-12">
         
         {/* Header Metadata */}
-        <div className="flex flex-col gap-3">
-          <span className="self-start text-xs font-sans font-extrabold text-brand-orange bg-brand-orange/15 px-3 py-1 rounded">
-            {servicesContent?.eyebrow || 'UNSER SERVICE-PORTFOLIO'}
-          </span>
-          <h1 className="font-display font-black text-3xl md:text-5xl text-primary-navy uppercase tracking-tight max-w-xl">
-            {servicesContent?.title || 'Wirksame Bauwerkserhaltung'}
-          </h1>
-          <p className="font-sans text-sm text-brand-text-muted leading-relaxed max-w-lg">
-            {servicesContent?.description || 'Wir sanieren Schäden im Tief- und Hochbau mit zertifizierter Fachkenntnis. Entdecken Sie unsere Kernarbeitsfelder.'}
-          </p>
-        </div>
+        {hasPageHeader && <div className="flex flex-col gap-3">
+          {hasText(servicesContent?.eyebrow) && <span className="self-start text-xs font-sans font-extrabold text-brand-orange bg-brand-orange/15 px-3 py-1 rounded">
+            {servicesContent?.eyebrow}
+          </span>}
+          {hasText(servicesContent?.title) && <h1 className="font-display font-black text-3xl md:text-5xl text-primary-navy uppercase tracking-tight max-w-xl">
+            {servicesContent?.title}
+          </h1>}
+          {hasText(servicesContent?.description) && <p className="font-sans text-sm text-brand-text-muted leading-relaxed max-w-lg">
+            {servicesContent?.description}
+          </p>}
+        </div>}
 
         {/* Filter Toolbar */}
-        <div className="flex flex-wrap gap-2 justify-center border-b border-gray-200 pb-6" id="services-filter-bar">
+        {serviceList.length > 0 && <div className="flex flex-wrap gap-2 justify-center border-b border-gray-200 pb-6" id="services-filter-bar">
           <button
             onClick={() => setSelectedFilter('all')}
             className={`font-sans font-bold text-xs uppercase px-5 py-2.5 rounded transition-all ${
@@ -123,10 +131,10 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
           >
             Schimmelbeseitigung
           </button>
-        </div>
+        </div>}
 
         {/* Services Grid List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8" id="services-grid-list">
+        {getFilteredServices().length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-8" id="services-grid-list">
           {getFilteredServices().map((service) => (
             <div 
               key={service.id} 
@@ -137,13 +145,13 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
               <div>
                 {/* Hero preview image inside card */}
                 <div className="h-52 w-full relative overflow-hidden bg-primary-navy border-b border-primary-navy">
-                  <img 
+                  {hasText(service.imageUrl) && <img 
                     src={service.imageUrl} 
                     alt={service.title} 
                     className="w-full h-full object-cover opacity-80"
                     referrerPolicy="no-referrer"
-                  />
-                  {service.tag && (
+                  />}
+                  {hasText(service.tag) && (
                     <span className="absolute top-4 left-4 bg-brand-orange text-white font-display font-black text-xs uppercase px-2.5 py-1 rounded">
                       {service.tag}
                     </span>
@@ -163,13 +171,13 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
                     <div className="bg-brand-orange/10 p-2 rounded">
                       {serviceIconMap(service.iconName)}
                     </div>
-                    <h3 className="font-display font-black text-xl text-primary-navy uppercase tracking-tight">
+                    {hasText(service.title) && <h3 className="font-display font-black text-xl text-primary-navy uppercase tracking-tight">
                       {service.title}
-                    </h3>
+                    </h3>}
                   </div>
-                  <p className="font-sans text-brand-text-muted text-sm leading-relaxed">
+                  {hasText(service.shortDesc) && <p className="font-sans text-brand-text-muted text-sm leading-relaxed">
                     {service.shortDesc}
-                  </p>
+                  </p>}
                 </div>
               </div>
 
@@ -192,11 +200,11 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
 
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* EXTRA SERVICE DETAILS: REAL INDUSTRIAL ARCH FOCUS */}
-        <div className="bg-primary-navy text-white rounded-xl overflow-hidden border-2 border-primary-navy grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mt-12 shadow-md">
-          <div className="h-64 lg:h-full min-h-[250px] relative">
+        {hasExtraBlock && <div className="bg-primary-navy text-white rounded-xl overflow-hidden border-2 border-primary-navy grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mt-12 shadow-md">
+          {hasText(servicesContent?.extraImageUrl) && <div className="h-64 lg:h-full min-h-[250px] relative">
             <img 
               src={servicesContent?.extraImageUrl || CONCRETE_ARCH_URL} 
               alt={servicesContent?.extraTitle || 'Architektonische Betonsanierung'} 
@@ -204,28 +212,28 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-primary-navy to-transparent opacity-40" />
-          </div>
+          </div>}
           <div className="p-8 md:p-12 flex flex-col gap-4">
-            <span className="text-xs font-sans text-brand-orange font-bold uppercase tracking-wider">
-              {servicesContent?.extraEyebrow || 'ZUSÄTZLICHER INGENIEUR-SUPPORT'}
-            </span>
-            <h3 className="font-display font-black text-2xl uppercase text-white tracking-tight">
-              {servicesContent?.extraTitle || 'Schadensanalysen & Sachverständigengutachten'}
-            </h3>
-            <p className="font-sans text-xs text-gray-300 leading-relaxed">
-              {servicesContent?.extraDescription || 'Feuchtigkeitsursachen im Mauerwerk sind oft komplexer als sie scheinen. Wir belassen es nicht beim bloßen Symptomkurieren: Unsere erfahrenen Sachverständigen führen professionelle Kernbohrungen, CM-Messerfassungen und digitale Thermografien durch.'}
-            </p>
-            <div className="flex flex-wrap gap-4 mt-2">
+            {hasText(servicesContent?.extraEyebrow) && <span className="text-xs font-sans text-brand-orange font-bold uppercase tracking-wider">
+              {servicesContent?.extraEyebrow}
+            </span>}
+            {hasText(servicesContent?.extraTitle) && <h3 className="font-display font-black text-2xl uppercase text-white tracking-tight">
+              {servicesContent?.extraTitle}
+            </h3>}
+            {hasText(servicesContent?.extraDescription) && <p className="font-sans text-xs text-gray-300 leading-relaxed">
+              {servicesContent?.extraDescription}
+            </p>}
+            {hasText(servicesContent?.extraButtonLabel) && <div className="flex flex-wrap gap-4 mt-2">
               <button 
                 onClick={() => navigateTo('kontakt')}
                 className="bg-brand-orange hover:bg-brand-orange-dark text-white font-display font-black text-xs uppercase px-5 py-3 rounded flex items-center gap-1.5 transition-colors"
               >
-                <span>{servicesContent?.extraButtonLabel || 'Spezialgutachten anfordern'}</span>
+                <span>{servicesContent?.extraButtonLabel}</span>
                 <ArrowRight size={12} />
               </button>
-            </div>
+            </div>}
           </div>
-        </div>
+        </div>}
 
       </div>
 
@@ -252,33 +260,33 @@ export default function LeistungenView({ navigateTo, onSelectServiceForContact }
                 <span className="text-xs font-sans text-brand-orange-dark font-extrabold uppercase tracking-widest">
                   DEUTSCHE INGENIEURSMETHODIK
                 </span>
-                <h3 className="font-display font-black text-2xl text-primary-navy uppercase tracking-tight">
+                {hasText(activeModalService.title) && <h3 className="font-display font-black text-2xl text-primary-navy uppercase tracking-tight">
                   {activeModalService.title}
-                </h3>
+                </h3>}
               </div>
             </div>
 
             {/* Modal Body */}
             <div className="flex flex-col gap-6 font-sans text-sm text-brand-text-muted leading-relaxed">
-              <p className="text-primary-navy font-semibold italic text-base bg-brand-bg px-4 py-3 rounded-lg">
+              {hasText(activeModalService.shortDesc) && <p className="text-primary-navy font-semibold italic text-base bg-brand-bg px-4 py-3 rounded-lg">
                 "{activeModalService.shortDesc}"
-              </p>
+              </p>}
               
-              <p>{activeModalService.longDesc}</p>
+              {hasText(activeModalService.longDesc) && <p>{activeModalService.longDesc}</p>}
 
-              <div className="bg-brand-bg p-4 rounded-lg border border-gray-200">
+              {activeModalService.features.filter(hasText).length > 0 && <div className="bg-brand-bg p-4 rounded-lg border border-gray-200">
                 <h4 className="font-display font-bold text-xs text-primary-navy uppercase tracking-wider mb-3">
                   Ihre technischen Systemvorteile:
                 </h4>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {activeModalService.features.map((feat, index) => (
+                  {activeModalService.features.filter(hasText).map((feat, index) => (
                     <li key={index} className="flex gap-2 items-start text-xs font-medium">
                       <span className="text-emerald-500 font-bold">✓</span>
                       <span>{feat}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </div>}
 
               <div className="flex gap-3 text-xs text-gray-400 border-t border-gray-100 pt-4 items-center">
                 <Info size={14} className="text-brand-orange" />

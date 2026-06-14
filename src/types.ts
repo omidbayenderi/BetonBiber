@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type PageId = 'home' | 'leistungen' | 'uber_uns' | 'kontakt' | 'admin' | 'not_found';
+export type PageId = 'home' | 'leistungen' | 'galerie' | 'uber_uns' | 'kontakt' | 'admin' | 'not_found';
 
 export interface TeamMember {
   name: string;
@@ -11,6 +11,7 @@ export interface TeamMember {
   avatarUrl: string;
   description: string;
   photoAlt: string;
+  hidden?: boolean;
 }
 
 export interface Testimonial {
@@ -18,6 +19,7 @@ export interface Testimonial {
   role: string;
   text: string;
   stars: number;
+  hidden?: boolean;
 }
 
 export interface QuoteRequest {
@@ -43,4 +45,14 @@ export interface ServiceDetail {
   imageUrl: string;
   bgDark?: boolean;
   tag?: string;
+  hidden?: boolean;
+}
+
+export interface GalleryItem {
+  id: string;
+  serviceName: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  hidden?: boolean;
 }

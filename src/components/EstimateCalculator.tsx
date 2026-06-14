@@ -45,6 +45,12 @@ export default function EstimateCalculator({ onExportToContact }: EstimateCalcul
   const servicesMap = pricingConfig.services;
 
   useEffect(() => {
+    if (servicesMap.length > 0 && !servicesMap.some(service => service.name === selectedService)) {
+      setSelectedService(servicesMap[0].name);
+    }
+  }, [selectedService, servicesMap]);
+
+  useEffect(() => {
     const serviceObj = servicesMap.find(s => s.name === selectedService) || servicesMap[0];
     let baseRate = serviceObj ? serviceObj.basePricePerM2 : 75;
 

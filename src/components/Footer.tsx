@@ -9,6 +9,7 @@ import { PageId } from '../types';
 // @ts-ignore
 import footerLogo from '../assets/images/regenerated_image_1780950671312.png';
 import { getPricingConfig } from '../lib/pricingState';
+import { hasAnyText, hasText } from '../lib/contentVisibility';
 import LegalModal, { LegalSection } from './LegalModal';
 
 interface FooterProps {
@@ -19,6 +20,17 @@ export default function Footer({ navigateTo }: FooterProps) {
   const [pricingConfig, setPricingConfig] = useState(() => getPricingConfig());
   const [legalSection, setLegalSection] = useState<LegalSection | null>(null);
   const footer = pricingConfig.footer;
+  const serviceLinks = footer?.hideServices ? [] : [footer?.serviceLink1, footer?.serviceLink2, footer?.serviceLink3, footer?.serviceLink4].filter(hasText);
+  const legalLinks = [
+    { label: footer?.legalLink1, section: 'privacy' as const },
+    { label: footer?.legalLink2, section: 'terms' as const },
+    { label: footer?.legalLink3, section: 'imprint' as const }
+  ].filter(item => !footer?.hideLegal && hasText(item.label));
+  const hasBrandColumn = !footer?.hideBrand && hasText(footer?.description);
+  const hasServicesColumn = !footer?.hideServices && (hasText(footer?.servicesTitle) || serviceLinks.length > 0);
+  const hasLegalColumn = !footer?.hideLegal && (hasText(footer?.legalTitle) || legalLinks.length > 0);
+  const hasCopyright = !footer?.hideCopyright && hasText(footer?.copyrightSuffix);
+  const hasFooterContent = hasBrandColumn || hasCopyright || hasServicesColumn || hasLegalColumn;
 
   useEffect(() => {
     const handleUpdated = () => {
@@ -30,12 +42,17 @@ export default function Footer({ navigateTo }: FooterProps) {
     };
   }, []);
 
+  if (!hasFooterContent) {
+    return null;
+  }
+
   return (
     <footer className="bg-primary-navy text-white border-t-4 border-brand-orange-dark" id="application-footer">
+      <>
       <div className="max-w-[1240px] mx-auto px-6 py-16 md:py-20 grid grid-cols-1 md:grid-cols-3 gap-12">
         
         {/* Brand Left Column */}
-        <div className="flex flex-col gap-5">
+        {hasBrandColumn && <div className="flex flex-col gap-5">
           <div className="cursor-pointer self-start animate-fadeIn" onClick={() => navigateTo('home')}>
             <img 
               alt="BETONBIBER Logo" 
@@ -44,74 +61,44 @@ export default function Footer({ navigateTo }: FooterProps) {
               referrerPolicy="no-referrer"
             />
           </div>
-          <p className="font-sans text-sm leading-relaxed text-gray-400">
-            {footer?.description || 'Ihr zertifiziertes Expertenteam für zuverlässige, langlebige und absolut dichte Lösungen für moderne Bauwerke und Bestandsbauten. Ingenieursqualität für Ihr Fundament.'}
-          </p>
-        </div>
+          {hasText(footer?.description) && <p className="font-sans text-sm leading-relaxed text-gray-400">
+            {footer?.description}
+          </p>}
+        </div>}
 
         {/* Services / Leistungen Column */}
-        <div className="flex flex-col gap-4">
-          <h4 className="font-display font-bold text-sm text-brand-orange uppercase tracking-wider border-b border-white/10 pb-2">
-            {footer?.servicesTitle || 'UNSERE LEISTUNGEN'}
-          </h4>
-          <ul className="flex flex-col gap-3 font-sans text-sm">
-            <li>
-              <button 
-                onClick={() => navigateTo('leistungen')} 
-                className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
-              >
-                {footer?.serviceLink1 || 'Kellerabdichtung & Horizontalsperre'}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => navigateTo('leistungen')} 
-                className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
-              >
-                {footer?.serviceLink2 || 'Injektionsverfahren & Riss-sanierung'}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => navigateTo('leistungen')} 
-                className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
-              >
-                {footer?.serviceLink3 || 'Betonsanierung & Bodenversiegelung'}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => navigateTo('leistungen')} 
-                className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
-              >
-                {footer?.serviceLink4 || 'Mikrobiologische Schimmelbeseitigung'}
-              </button>
-            </li>
-          </ul>
-        </div>
+        {hasServicesColumn && <div className="flex flex-col gap-4">
+          {hasText(footer?.servicesTitle) && <h4 className="font-display font-bold text-sm text-brand-orange uppercase tracking-wider border-b border-white/10 pb-2">
+            {footer?.servicesTitle}
+          </h4>}
+          {serviceLinks.length > 0 && <ul className="flex flex-col gap-3 font-sans text-sm">
+            {serviceLinks.map((label, index) => (
+              <li key={index}>
+                <button 
+                  onClick={() => navigateTo('leistungen')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left hover:underline"
+                >
+                  {label}
+                </button>
+              </li>
+            ))}
+          </ul>}
+        </div>}
 
         {/* Legal & Info Column */}
-        <div className="flex flex-col gap-4">
-          <h4 className="font-display font-bold text-sm text-brand-orange uppercase tracking-wider border-b border-white/10 pb-2">
-            {footer?.legalTitle || 'RECHTLICHES & HELP'}
-          </h4>
-          <ul className="flex flex-col gap-3 font-sans text-sm mb-4">
-            <li>
-              <button type="button" onClick={() => setLegalSection('privacy')} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
-                {footer?.legalLink1 || 'Datenschutzerklärung / Privacy Policy'}
-              </button>
-            </li>
-            <li>
-              <button type="button" onClick={() => setLegalSection('terms')} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
-                {footer?.legalLink2 || 'Nutzungsbedingungen / Terms of Use'}
-              </button>
-            </li>
-            <li>
-              <button type="button" onClick={() => setLegalSection('imprint')} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
-                {footer?.legalLink3 || 'AGB / Impressum'}
-              </button>
-            </li>
-          </ul>
+        {hasLegalColumn && <div className="flex flex-col gap-4">
+          {hasText(footer?.legalTitle) && <h4 className="font-display font-bold text-sm text-brand-orange uppercase tracking-wider border-b border-white/10 pb-2">
+            {footer?.legalTitle}
+          </h4>}
+          {legalLinks.length > 0 && <ul className="flex flex-col gap-3 font-sans text-sm mb-4">
+            {legalLinks.map(item => (
+              <li key={item.section}>
+                <button type="button" onClick={() => setLegalSection(item.section)} className="text-left text-gray-400 hover:text-white transition-colors hover:underline">
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>}
           
           <div className="flex gap-3">
             <a 
@@ -136,14 +123,14 @@ export default function Footer({ navigateTo }: FooterProps) {
               <Share2 size={16} />
             </button>
           </div>
-        </div>
+        </div>}
 
       </div>
 
-      <div className="w-full bg-primary-navy-light py-6 border-t border-white/5 text-center px-4">
+      {hasCopyright && <div className="w-full bg-primary-navy-light py-6 border-t border-white/5 text-center px-4">
         <div className="max-w-[1240px] mx-auto flex flex-col items-center justify-center gap-2">
           <p className="font-sans text-xs text-gray-500">
-            © {new Date().getFullYear()} {footer?.copyrightSuffix || 'Betonbiber Bautenschutz. Alle Rechte vorbehalten. | Industrial Integrity Engineered.'}
+            © {new Date().getFullYear()} {footer?.copyrightSuffix}
           </p>
           <a
             href="https://bayenderi.com"
@@ -154,7 +141,8 @@ export default function Footer({ navigateTo }: FooterProps) {
             Webmeister Bayenderi.com
           </a>
         </div>
-      </div>
+      </div>}
+      </>
 
       {legalSection && (
         <LegalModal initialSection={legalSection} onClose={() => setLegalSection(null)} />

@@ -6,23 +6,33 @@
 import { useState } from 'react';
 import { Menu, X, ArrowRight, ShieldCheck } from 'lucide-react';
 import { PageId } from '../types';
+import { PageVisibilityContent } from '../lib/pricingState';
 import { BRAND_LOGO_URL } from '../constants';
 
 interface HeaderProps {
   activePage: PageId;
   navigateTo: (page: PageId) => void;
   openEstimator: () => void;
+  pageVisibility?: PageVisibilityContent;
 }
 
-export default function Header({ activePage, navigateTo, openEstimator }: HeaderProps) {
+export default function Header({ activePage, navigateTo, openEstimator, pageVisibility }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { id: 'home', label: 'Startseite' },
     { id: 'leistungen', label: 'Leistungen' },
+    { id: 'galerie', label: 'Galerie' },
     { id: 'uber_uns', label: 'Über uns' },
     { id: 'kontakt', label: 'Kontakt' },
-  ] as const;
+  ].filter(link => {
+    if (link.id === 'home') return !pageVisibility?.hideHome;
+    if (link.id === 'leistungen') return !pageVisibility?.hideLeistungen;
+    if (link.id === 'galerie') return !pageVisibility?.hideGalerie;
+    if (link.id === 'uber_uns') return !pageVisibility?.hideUberUns;
+    if (link.id === 'kontakt') return !pageVisibility?.hideKontakt;
+    return true;
+  }) as Array<{ id: PageId; label: string }>;
 
   const handleNavClick = (id: PageId) => {
     navigateTo(id);
@@ -35,7 +45,7 @@ export default function Header({ activePage, navigateTo, openEstimator }: Header
         
         {/* Logo / Brand */}
         <div 
-          onClick={() => handleNavClick('home')} 
+          onClick={() => handleNavClick(navLinks[0]?.id || 'home')} 
           className="flex items-center gap-3 cursor-pointer group"
           id="header-brand-logo"
         >
@@ -63,14 +73,14 @@ export default function Header({ activePage, navigateTo, openEstimator }: Header
             </button>
           ))}
           
-          <button
+          {!pageVisibility?.hideHome && <button
             onClick={openEstimator}
             className="ml-4 bg-brand-orange hover:bg-brand-orange-dark text-white font-display font-bold text-xs uppercase px-5 py-3 rounded shadow-sm hover:translate-y-[1px] transition-all flex items-center gap-1.5"
             id="header-cta-estimator"
           >
             <ShieldCheck size={14} />
             <span>ANGEBOT BERECHNEN</span>
-          </button>
+          </button>}
         </div>
 
         {/* Mobile menu trigger */}
@@ -103,7 +113,7 @@ export default function Header({ activePage, navigateTo, openEstimator }: Header
               {link.label}
             </button>
           ))}
-          <button
+          {!pageVisibility?.hideHome && <button
             onClick={() => {
               openEstimator();
               setMobileMenuOpen(false);
@@ -112,7 +122,7 @@ export default function Header({ activePage, navigateTo, openEstimator }: Header
           >
             <span>Angebot Berechnen</span>
             <ArrowRight size={16} />
-          </button>
+          </button>}
         </div>
       )}
     </header>

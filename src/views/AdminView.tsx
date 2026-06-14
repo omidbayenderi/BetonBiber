@@ -11,9 +11,9 @@ import {
   Users, Home, Image, Type, Star, Activity, Sparkles,
   TrendingUp, Clock3, Gauge, LockKeyhole, CircleDollarSign,
   UploadCloud, Link2, SlidersHorizontal, LayoutDashboard, ClipboardList,
-  BriefcaseBusiness, Building2, MessageSquareQuote
+  BriefcaseBusiness, Building2, MessageSquareQuote, EyeOff, Images
 } from 'lucide-react';
-import { QuoteRequest, ServiceDetail, TeamMember, Testimonial } from '../types';
+import { GalleryItem, QuoteRequest, ServiceDetail, TeamMember, Testimonial } from '../types';
 import {
   getPricingConfig,
   savePricingConfig,
@@ -23,7 +23,9 @@ import {
   ServicesContent,
   AboutContent,
   FooterContent,
-  ContactConfig
+  ContactConfig,
+  GalleryContent,
+  PageVisibilityContent
 } from '../lib/pricingState';
 
 const ADMIN_PASS_HASH = import.meta.env.VITE_ADMIN_PASS_HASH as string | undefined;
@@ -56,7 +58,7 @@ export default function AdminView({
   // Config State
   const [config, setConfig] = useState<PricingConfig>(getPricingConfig());
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'services' | 'about' | 'requests'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'services' | 'gallery' | 'about' | 'requests'>('calculator');
 
   const handleLogin = useCallback(async (e: FormEvent) => {
     e.preventDefault();
@@ -103,10 +105,38 @@ export default function AdminView({
     setConfig({ ...config, services: updatedServices });
   };
 
+  const handleServiceNameChange = (index: number, val: string) => {
+    const updatedServices = [...config.services];
+    updatedServices[index] = { ...updatedServices[index], name: val };
+    setConfig({ ...config, services: updatedServices });
+  };
+
   const handleServiceMaterialsChange = (index: number, val: string) => {
     const updatedServices = [...config.services];
     updatedServices[index] = { ...updatedServices[index], materials: val };
     setConfig({ ...config, services: updatedServices });
+  };
+
+  const handleAddPricingService = () => {
+    setConfig({
+      ...config,
+      services: [
+        ...config.services,
+        {
+          name: 'Neue Dienstleistung',
+          basePricePerM2: 75,
+          materials: 'Bitte Systemkomponenten ergänzen'
+        }
+      ]
+    });
+  };
+
+  const handleDeletePricingService = (index: number) => {
+    if (!confirm('Diese Dienstleistung wirklich aus dem Kostenschätzer entfernen?')) return;
+    setConfig({
+      ...config,
+      services: config.services.filter((_, i) => i !== index)
+    });
   };
 
   const handleDampnessFactorChange = (key: 'leicht' | 'mittel' | 'stark', val: number) => {
@@ -150,9 +180,102 @@ export default function AdminView({
     setConfig({ ...config, homepage: { ...current, [feat]: { ...current[feat], [subField]: val } } });
   };
 
-  const handleFooterChange = (field: keyof FooterContent, val: string) => {
+  const handleFooterChange = (field: keyof FooterContent, val: string | boolean) => {
     const current: FooterContent = config.footer || { ...DEFAULT_PRICING_CONFIG.footer! };
     setConfig({ ...config, footer: { ...current, [field]: val } });
+  };
+
+  const handleHomepageVisibilityChange = (
+    field: 'hideHero' | 'hideEstimator' | 'hideStats' | 'hideCompetences' | 'hideTeamTeaser',
+    hidden: boolean
+  ) => {
+    const current: HomepageContent = config.homepage || { ...DEFAULT_PRICING_CONFIG.homepage! };
+    setConfig({ ...config, homepage: { ...current, [field]: hidden } });
+  };
+
+  const handleServicesVisibilityChange = (
+    field: 'hideHeader' | 'hideServices' | 'hideExtra',
+    hidden: boolean
+  ) => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    setConfig({ ...config, servicesContent: { ...current, [field]: hidden } });
+  };
+
+  const handleAboutVisibilityChange = (
+    field: 'hideIntro' | 'hideMission' | 'hideTeam' | 'hideTestimonials',
+    hidden: boolean
+  ) => {
+    const current: AboutContent = config.about || { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [...DEFAULT_PRICING_CONFIG.about!.testimonials] };
+    setConfig({ ...config, about: { ...current, [field]: hidden } });
+  };
+
+  const handleGalleryChange = (field: keyof Omit<GalleryContent, 'items'>, val: string | boolean) => {
+    const current: GalleryContent = config.gallery || { ...DEFAULT_PRICING_CONFIG.gallery!, items: [...DEFAULT_PRICING_CONFIG.gallery!.items] };
+    setConfig({ ...config, gallery: { ...current, [field]: val } });
+  };
+
+  const handlePageVisibilityChange = (field: keyof PageVisibilityContent, hidden: boolean) => {
+    const current: PageVisibilityContent = config.pageVisibility || { ...DEFAULT_PRICING_CONFIG.pageVisibility! };
+    setConfig({ ...config, pageVisibility: { ...current, [field]: hidden } });
+  };
+
+  const handleGalleryItemChange = (index: number, field: keyof GalleryItem, val: string | boolean) => {
+    const current: GalleryContent = config.gallery || { ...DEFAULT_PRICING_CONFIG.gallery!, items: [...DEFAULT_PRICING_CONFIG.gallery!.items] };
+    const items = [...current.items];
+    if (items[index]) {
+      items[index] = { ...items[index], [field]: val };
+      setConfig({ ...config, gallery: { ...current, items } });
+    }
+  };
+
+  const handleAddGalleryItem = (serviceName?: string) => {
+    const current: GalleryContent = config.gallery || { ...DEFAULT_PRICING_CONFIG.gallery!, items: [...DEFAULT_PRICING_CONFIG.gallery!.items] };
+    const fallbackService = serviceName || config.services[0]?.name || 'Allgemein';
+    const newItem: GalleryItem = {
+      id: `galerie_${Date.now()}`,
+      serviceName: fallbackService,
+      title: '',
+      description: '',
+      imageUrl: ''
+    };
+    setConfig({ ...config, gallery: { ...current, items: [...current.items, newItem] } });
+  };
+
+  const handleDeleteGalleryItem = (index: number) => {
+    if (!confirm('Diesen Galerieeintrag wirklich entfernen?')) return;
+    const current: GalleryContent = config.gallery || { ...DEFAULT_PRICING_CONFIG.gallery!, items: [...DEFAULT_PRICING_CONFIG.gallery!.items] };
+    setConfig({
+      ...config,
+      gallery: {
+        ...current,
+        items: current.items.filter((_, i) => i !== index)
+      }
+    });
+  };
+
+  const handleGalleryImageUpload = (index: number, e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Bitte wählen Sie eine gültige Bilddatei aus.');
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 2.5 * 1024 * 1024) {
+      alert('Das Bild ist zu groß. Bitte verwenden Sie ein Bild unter 2,5 MB.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        handleGalleryItemChange(index, 'imageUrl', reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleServicesContentChange = (field: keyof Omit<ServicesContent, 'items'>, val: string) => {
@@ -169,6 +292,35 @@ export default function AdminView({
     }
   };
 
+  const handleAddServiceDetail = () => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    const nextIndex = current.items.length + 1;
+    const newService: ServiceDetail = {
+      id: `manuelle_leistung_${Date.now()}`,
+      title: `Neue Leistung ${nextIndex}`,
+      iconName: 'construction',
+      shortDesc: '',
+      longDesc: '',
+      features: [''],
+      imageUrl: '',
+      bgDark: false,
+      tag: ''
+    };
+    setConfig({ ...config, servicesContent: { ...current, items: [...current.items, newService] } });
+  };
+
+  const handleDeleteServiceDetail = (index: number) => {
+    if (!confirm('Diese Leistungskarte wirklich entfernen?')) return;
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    setConfig({
+      ...config,
+      servicesContent: {
+        ...current,
+        items: current.items.filter((_, i) => i !== index)
+      }
+    });
+  };
+
   const handleServiceFeatureChange = (serviceIndex: number, featureIndex: number, val: string) => {
     const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
     const items = [...current.items];
@@ -181,12 +333,32 @@ export default function AdminView({
     }
   };
 
+  const handleAddServiceFeature = (serviceIndex: number) => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    const items = [...current.items];
+    const service = items[serviceIndex];
+    if (service) {
+      items[serviceIndex] = { ...service, features: [...service.features, ''] };
+      setConfig({ ...config, servicesContent: { ...current, items } });
+    }
+  };
+
+  const handleDeleteServiceFeature = (serviceIndex: number, featureIndex: number) => {
+    const current: ServicesContent = config.servicesContent || { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [...DEFAULT_PRICING_CONFIG.servicesContent!.items] };
+    const items = [...current.items];
+    const service = items[serviceIndex];
+    if (service) {
+      items[serviceIndex] = { ...service, features: service.features.filter((_, i) => i !== featureIndex) };
+      setConfig({ ...config, servicesContent: { ...current, items } });
+    }
+  };
+
   const handleAboutChange = (field: keyof Omit<AboutContent, 'testimonials'>, val: string) => {
     const current: AboutContent = config.about || { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [...DEFAULT_PRICING_CONFIG.about!.testimonials] };
     setConfig({ ...config, about: { ...current, [field]: val } });
   };
 
-  const handleTestimonialChange = (index: number, field: keyof Testimonial, val: string | number) => {
+  const handleTestimonialChange = (index: number, field: keyof Testimonial, val: string | number | boolean) => {
     const current: AboutContent = config.about || { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [...DEFAULT_PRICING_CONFIG.about!.testimonials] };
     const testimonials = [...current.testimonials];
     if (testimonials[index]) {
@@ -195,7 +367,7 @@ export default function AdminView({
     }
   };
 
-  const handleContactChange = (field: keyof ContactConfig, val: string) => {
+  const handleContactChange = (field: keyof ContactConfig, val: string | boolean) => {
     const contact = config.contact || { ...DEFAULT_PRICING_CONFIG.contact! };
     setConfig({
       ...config,
@@ -223,16 +395,16 @@ export default function AdminView({
     setConfig({ ...config, team: updated });
   };
 
-  const handleTeamMemberChange = (index: number, field: keyof TeamMember, val: string) => {
+  const handleTeamMemberChange = (index: number, field: keyof TeamMember, val: string | boolean) => {
     const updatedTeam = [...(config.team || [])];
     if (updatedTeam[index]) {
       updatedTeam[index] = { 
         ...updatedTeam[index], 
         [field]: val,
         // Sync photoAlt to name when name changes
-        ...(field === 'name' ? { photoAlt: `${val} ${updatedTeam[index].role || ''}`.trim() } : {}),
+        ...(field === 'name' && typeof val === 'string' ? { photoAlt: `${val} ${updatedTeam[index].role || ''}`.trim() } : {}),
         // Sync photoAlt to role when role changes
-        ...(field === 'role' ? { photoAlt: `${updatedTeam[index].name || ''} ${val}`.trim() } : {})
+        ...(field === 'role' && typeof val === 'string' ? { photoAlt: `${updatedTeam[index].name || ''} ${val}`.trim() } : {})
       };
       setConfig({
         ...config,
@@ -277,6 +449,38 @@ export default function AdminView({
   const panelClass = "rounded-[1.5rem] border border-white/70 bg-white/88 p-5 shadow-[0_24px_80px_rgba(8,22,37,0.10)] backdrop-blur-xl md:p-6";
   const sectionTitleClass = "font-display text-sm font-black uppercase tracking-wide text-slate-950 flex items-center gap-2";
   const workbenchClass = "rounded-[1.75rem] border border-white/70 bg-white/75 p-5 shadow-[0_18px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl md:p-6";
+  const BlockHideToggle = ({
+    checked,
+    onChange,
+    label = 'Block ausblenden'
+  }: {
+    checked?: boolean;
+    onChange: (checked: boolean) => void;
+    label?: string;
+  }) => (
+    <label
+      title={checked ? 'Dieser Bereich ist auf der öffentlichen Website ausgeblendet.' : 'Diesen Bereich auf der öffentlichen Website ausblenden.'}
+      className={`inline-flex min-h-10 cursor-pointer select-none items-center justify-between gap-3 rounded-2xl border px-3 py-2 font-display text-[10px] font-black uppercase tracking-wider transition ${
+        checked
+          ? 'border-red-200 bg-red-50 text-red-600 shadow-sm'
+          : 'border-slate-200 bg-white/85 text-slate-500 shadow-sm hover:border-brand-orange/40 hover:text-primary-navy'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={Boolean(checked)}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only"
+      />
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <EyeOff size={12} />
+        <span>{label}</span>
+      </span>
+      <span className={`relative h-5 w-9 rounded-full transition ${checked ? 'bg-red-500' : 'bg-slate-300'}`}>
+        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition ${checked ? 'left-4' : 'left-0.5'}`} />
+      </span>
+    </label>
+  );
 
   if (!isAuthenticated) {
     return (
@@ -487,6 +691,17 @@ export default function AdminView({
                 <span>Leistungen</span>
               </button>
               <button
+                onClick={() => setActiveTab('gallery')}
+                className={`flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2.5 font-display text-xs font-extrabold uppercase transition-all ${
+                  activeTab === 'gallery'
+                    ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-primary-navy'
+                }`}
+              >
+                <Images size={15} />
+                <span>Galerie</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('about')}
                 className={`flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2.5 font-display text-xs font-extrabold uppercase transition-all ${
                   activeTab === 'about'
@@ -553,18 +768,76 @@ export default function AdminView({
             {/* List of services & materials */}
             <div className="lg:col-span-2 flex flex-col gap-6">
               <div className={panelClass}>
-                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                  <Layers size={17} className="text-brand-orange-dark" />
-                  <span>1. Basistarife je Dienstleistung (€ / m²)</span>
-                </h3>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <div>
+                    <h3 className={sectionTitleClass}>
+                      <Layers size={17} className="text-brand-orange-dark" />
+                      <span>1. Basistarife je Dienstleistung (€ / m²)</span>
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Diese Werte steuern den interaktiven Kostenschätzer: Fläche × Basispreis × Faktoren.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddPricingService}
+                    className="flex min-h-10 items-center gap-1.5 rounded-2xl bg-brand-orange px-4 py-2 font-display text-[11px] font-black uppercase tracking-wider text-white shadow-lg shadow-brand-orange/20 transition hover:-translate-y-0.5 hover:bg-brand-orange-dark"
+                  >
+                    <span>+ Dienstleistung hinzufügen</span>
+                  </button>
+                </div>
 
                 <div className="flex flex-col gap-6">
                   {config.services.map((srv, idx) => (
-                    <div key={srv.name} className="group rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/80 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-orange/40 hover:shadow-xl hover:shadow-slate-900/5 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                      <div className="flex-1 w-full">
-                        <span className="font-display font-black text-xs text-primary-navy uppercase tracking-wide block mb-2">
-                          {srv.name}
+                    <div key={`${srv.name}-${idx}`} className="group rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/80 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-orange/40 hover:shadow-xl hover:shadow-slate-900/5">
+                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <span className="font-display font-black text-xs text-primary-navy uppercase tracking-wide">
+                          Dienstleistung {idx + 1}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePricingService(idx)}
+                          className="flex min-h-8 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 font-display text-[10px] font-black uppercase tracking-wider text-red-500 transition hover:bg-red-100"
+                        >
+                          <Trash2 size={11} />
+                          <span>Entfernen</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_120px]">
+                        <div className="flex flex-col gap-1">
+                          <label className={labelClass}>
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            value={srv.name}
+                            onChange={(e) => handleServiceNameChange(idx, e.target.value)}
+                            className={inputClass}
+                            placeholder="z.B. Balkon arbeiten"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className={labelClass}>
+                            Preis pro m²
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={srv.basePricePerM2}
+                              onChange={(e) => handleServicePriceChange(idx, Number(e.target.value))}
+                              className={`${compactInputClass} w-full pr-7`}
+                              required
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">€</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 lg:col-span-2">
+                          <label className={labelClass}>
+                            Systemkomponenten / Material
+                          </label>
                         <input
                           type="text"
                           value={srv.materials}
@@ -573,21 +846,6 @@ export default function AdminView({
                           placeholder="Verwendete Materialien / Systemkomponenten"
                           title="Materialien für die Kostenschätzung"
                         />
-                      </div>
-
-                      <div className="flex flex-col gap-1 w-full sm:w-28 flex-shrink-0">
-                        <label className={labelClass}>
-                          Preis pro m²
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            value={srv.basePricePerM2}
-                            onChange={(e) => handleServicePriceChange(idx, Number(e.target.value))}
-                            className={`${compactInputClass} w-full pr-7`}
-                            required
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">€</span>
                         </div>
                       </div>
                     </div>
@@ -707,16 +965,21 @@ export default function AdminView({
                 <div className="flex flex-col gap-6">
                   {(config.team || []).map((member, idx) => (
                     <div key={idx} className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/80 p-4 shadow-sm flex flex-col lg:flex-row gap-4 items-start relative">
-                      {/* Delete button */}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTeamMember(idx)}
-                        title="Experten entfernen"
-                        className="absolute top-3 right-3 flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 font-display text-[10px] font-black uppercase tracking-wider text-red-500 hover:bg-red-100 transition"
-                      >
-                        <Trash2 size={11} />
-                        <span>Entfernen</span>
-                      </button>
+                      <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-2">
+                        <BlockHideToggle
+                          checked={member.hidden}
+                          onChange={(hidden) => handleTeamMemberChange(idx, 'hidden', hidden)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTeamMember(idx)}
+                          title="Experten entfernen"
+                          className="flex min-h-9 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 font-display text-[10px] font-black uppercase tracking-wider text-red-500 transition hover:bg-red-100"
+                        >
+                          <Trash2 size={11} />
+                          <span>Entfernen</span>
+                        </button>
+                      </div>
 
                       {/* Avatar preview */}
                       <div className="flex w-full flex-row items-center gap-3 lg:w-48 lg:flex-col lg:items-stretch">
@@ -818,10 +1081,17 @@ export default function AdminView({
             {/* General parameters and Saving */}
             <div className="flex flex-col gap-6">
               <div className={panelClass}>
-                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-4`}>
-                  <ShieldCheck size={17} className="text-brand-orange-dark" />
-                  <span>4. Generelle Parameter</span>
-                </h3>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <ShieldCheck size={17} className="text-brand-orange-dark" />
+                    <span>4. Generelle Parameter</span>
+                  </h3>
+                  <BlockHideToggle
+                    checked={config.homepage?.hideEstimator}
+                    onChange={(hidden) => handleHomepageVisibilityChange('hideEstimator', hidden)}
+                    label="Kalkulator ausblenden"
+                  />
+                </div>
 
                 {/* Save actions panel */}
                 <div className="flex flex-col gap-3 pt-4 border-t border-slate-200">
@@ -852,10 +1122,29 @@ export default function AdminView({
 
               {/* Card 2: Contact Information ("Direkter Draht") */}
               <div className={panelClass}>
-                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-4`}>
-                  <Phone size={17} className="text-brand-orange-dark" />
-                  <span>5. Direkter Draht (Kontakt)</span>
-                </h3>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <Phone size={17} className="text-brand-orange-dark" />
+                    <span>5. Direkter Draht (Kontakt)</span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <BlockHideToggle
+                      checked={config.contact?.hideContactIntro}
+                      onChange={(hidden) => handleContactChange('hideContactIntro', hidden)}
+                      label="Kontakt-Intro ausblenden"
+                    />
+                    <BlockHideToggle
+                      checked={config.contact?.hideContactDetails}
+                      onChange={(hidden) => handleContactChange('hideContactDetails', hidden)}
+                      label="Direkten Draht ausblenden"
+                    />
+                    <BlockHideToggle
+                      checked={config.contact?.hideContactMap}
+                      onChange={(hidden) => handleContactChange('hideContactMap', hidden)}
+                      label="Karte ausblenden"
+                    />
+                  </div>
+                </div>
 
                 <div className="flex flex-col gap-4">
                   <div className="grid grid-cols-1 gap-3">
@@ -1040,6 +1329,7 @@ export default function AdminView({
         {/* Tab: Homepage Content Editor */}
         {activeTab === 'homepage' && (() => {
           const hp: HomepageContent = config.homepage || { ...DEFAULT_PRICING_CONFIG.homepage! };
+          const pageVisibility = config.pageVisibility || { ...DEFAULT_PRICING_CONFIG.pageVisibility! };
           return (
             <div className="flex flex-col gap-6">
               <div className={workbenchClass}>
@@ -1073,6 +1363,27 @@ export default function AdminView({
                 </div>
               </div>
 
+              <div className={panelClass}>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <div>
+                    <h3 className={sectionTitleClass}>
+                      <EyeOff size={17} className="text-brand-orange-dark" />
+                      Seiten-Sichtbarkeit
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Ausgeblendete Seiten verschwinden aus der Navigation und sind öffentlich nicht direkt aufrufbar.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                  <BlockHideToggle checked={pageVisibility.hideHome} onChange={(hidden) => handlePageVisibilityChange('hideHome', hidden)} label="Startseite ausblenden" />
+                  <BlockHideToggle checked={pageVisibility.hideLeistungen} onChange={(hidden) => handlePageVisibilityChange('hideLeistungen', hidden)} label="Leistungen ausblenden" />
+                  <BlockHideToggle checked={pageVisibility.hideGalerie} onChange={(hidden) => handlePageVisibilityChange('hideGalerie', hidden)} label="Galerie ausblenden" />
+                  <BlockHideToggle checked={pageVisibility.hideUberUns} onChange={(hidden) => handlePageVisibilityChange('hideUberUns', hidden)} label="Über uns ausblenden" />
+                  <BlockHideToggle checked={pageVisibility.hideKontakt} onChange={(hidden) => handlePageVisibilityChange('hideKontakt', hidden)} label="Kontakt ausblenden" />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
               {/* Left: Hero + Stats + Features */}
@@ -1080,10 +1391,16 @@ export default function AdminView({
 
                 {/* Hero Text */}
                 <div className={panelClass}>
-                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                    <Type size={17} className="text-brand-orange-dark" />
-                    <span>1. Hero-Bereich — Texte</span>
-                  </h3>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <h3 className={sectionTitleClass}>
+                      <Type size={17} className="text-brand-orange-dark" />
+                      <span>1. Hero-Bereich — Texte</span>
+                    </h3>
+                    <BlockHideToggle
+                      checked={hp.hideHero}
+                      onChange={(hidden) => handleHomepageVisibilityChange('hideHero', hidden)}
+                    />
+                  </div>
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
                       <label className={labelClass}>Badge-Text (oben)</label>
@@ -1110,10 +1427,16 @@ export default function AdminView({
 
                 {/* Hero Image */}
                 <div className={panelClass}>
-                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                    <Image size={17} className="text-brand-orange-dark" />
-                    <span>2. Hero-Hintergrundbild</span>
-                  </h3>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <h3 className={sectionTitleClass}>
+                      <Image size={17} className="text-brand-orange-dark" />
+                      <span>2. Hero-Hintergrundbild</span>
+                    </h3>
+                    <BlockHideToggle
+                      checked={hp.hideHero}
+                      onChange={(hidden) => handleHomepageVisibilityChange('hideHero', hidden)}
+                    />
+                  </div>
                   <div className="flex flex-col gap-3">
                     <div className="flex flex-col gap-1">
                       <label className={labelClass}>Bild-URL</label>
@@ -1132,10 +1455,16 @@ export default function AdminView({
 
                 {/* Stats */}
                 <div className={panelClass}>
-                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                    <Star size={17} className="text-brand-orange-dark" />
-                    <span>3. Kennzahlen (Hero rechts)</span>
-                  </h3>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <h3 className={sectionTitleClass}>
+                      <Star size={17} className="text-brand-orange-dark" />
+                      <span>3. Kennzahlen (Hero rechts)</span>
+                    </h3>
+                    <BlockHideToggle
+                      checked={hp.hideStats}
+                      onChange={(hidden) => handleHomepageVisibilityChange('hideStats', hidden)}
+                    />
+                  </div>
                   <div className="flex flex-col gap-5">
                     {(['stat1', 'stat2', 'stat3'] as const).map((key, i) => (
                       <div key={key} className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50/80 p-4 shadow-sm">
@@ -1159,10 +1488,24 @@ export default function AdminView({
 
                 {/* Feature Section */}
                 <div className={panelClass}>
-                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                    <Layers size={17} className="text-brand-orange-dark" />
-                    <span>4. Kompetenz-Bereich</span>
-                  </h3>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <h3 className={sectionTitleClass}>
+                      <Layers size={17} className="text-brand-orange-dark" />
+                      <span>4. Kompetenz-Bereich</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      <BlockHideToggle
+                        checked={hp.hideCompetences}
+                        onChange={(hidden) => handleHomepageVisibilityChange('hideCompetences', hidden)}
+                        label="Kompetenz ausblenden"
+                      />
+                      <BlockHideToggle
+                        checked={hp.hideTeamTeaser}
+                        onChange={(hidden) => handleHomepageVisibilityChange('hideTeamTeaser', hidden)}
+                        label="Expertenteam ausblenden"
+                      />
+                    </div>
+                  </div>
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
                       <label className={labelClass}>Abschnittsüberschrift</label>
@@ -1197,10 +1540,34 @@ export default function AdminView({
                   const footer = config.footer || { ...DEFAULT_PRICING_CONFIG.footer! };
                   return (
                     <div className={panelClass}>
-                      <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                        <Layers size={17} className="text-brand-orange-dark" />
-                        <span>5. Footer-Bereich</span>
-                      </h3>
+                      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                        <h3 className={sectionTitleClass}>
+                          <Layers size={17} className="text-brand-orange-dark" />
+                          <span>5. Footer-Bereich</span>
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          <BlockHideToggle
+                            checked={footer.hideBrand}
+                            onChange={(hidden) => handleFooterChange('hideBrand', hidden)}
+                            label="Markenbereich ausblenden"
+                          />
+                          <BlockHideToggle
+                            checked={footer.hideServices}
+                            onChange={(hidden) => handleFooterChange('hideServices', hidden)}
+                            label="Leistungen ausblenden"
+                          />
+                          <BlockHideToggle
+                            checked={footer.hideLegal}
+                            onChange={(hidden) => handleFooterChange('hideLegal', hidden)}
+                            label="Rechtliches ausblenden"
+                          />
+                          <BlockHideToggle
+                            checked={footer.hideCopyright}
+                            onChange={(hidden) => handleFooterChange('hideCopyright', hidden)}
+                            label="Copyright ausblenden"
+                          />
+                        </div>
+                      </div>
                       <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1">
                           <label className={labelClass}>Footer Beschreibung</label>
@@ -1316,10 +1683,16 @@ export default function AdminView({
               </div>
 
               <div className={panelClass}>
-                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                  <Type size={17} className="text-brand-orange-dark" />
-                  Seitenkopf
-                </h3>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <Type size={17} className="text-brand-orange-dark" />
+                    Seitenkopf
+                  </h3>
+                  <BlockHideToggle
+                    checked={servicesContent.hideHeader}
+                    onChange={(hidden) => handleServicesVisibilityChange('hideHeader', hidden)}
+                  />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
                     <label className={labelClass}>Eyebrow</label>
@@ -1336,6 +1709,30 @@ export default function AdminView({
                 </div>
               </div>
 
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-white/70 bg-white/70 p-4 shadow-sm">
+                <div>
+                  <h3 className={sectionTitleClass}>
+                    <BriefcaseBusiness size={17} className="text-brand-orange-dark" />
+                    Leistungskarten
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Ganze Liste oder einzelne Leistungen im öffentlichen Bereich ausblenden.
+                  </p>
+                </div>
+                <BlockHideToggle
+                  checked={servicesContent.hideServices}
+                  onChange={(hidden) => handleServicesVisibilityChange('hideServices', hidden)}
+                  label="Alle Leistungen ausblenden"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddServiceDetail}
+                  className="flex min-h-10 items-center gap-1.5 rounded-2xl bg-primary-navy px-4 py-2 font-display text-[11px] font-black uppercase tracking-wider text-white shadow-lg shadow-primary-navy/15 transition hover:-translate-y-0.5 hover:bg-slate-950"
+                >
+                  <span>+ Leistungskarte hinzufügen</span>
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {servicesContent.items.map((service, idx) => (
                   <div key={service.id} className={panelClass}>
@@ -1344,7 +1741,21 @@ export default function AdminView({
                         <BriefcaseBusiness size={17} className="text-brand-orange-dark" />
                         Leistung {idx + 1}
                       </h3>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{service.id}</span>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <BlockHideToggle
+                          checked={service.hidden}
+                          onChange={(hidden) => handleServiceDetailChange(idx, 'hidden', hidden)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteServiceDetail(idx)}
+                          className="flex min-h-9 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 font-display text-[10px] font-black uppercase tracking-wider text-red-500 transition hover:bg-red-100"
+                        >
+                          <Trash2 size={11} />
+                          <span>Entfernen</span>
+                        </button>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{service.id}</span>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1373,26 +1784,244 @@ export default function AdminView({
                         {service.features.map((feature, featureIdx) => (
                           <div key={featureIdx} className="flex flex-col gap-1">
                             <label className={labelClass}>Feature {featureIdx + 1}</label>
-                            <input value={feature} onChange={e => handleServiceFeatureChange(idx, featureIdx, e.target.value)} className={inputClass} />
+                            <div className="flex gap-2">
+                              <input value={feature} onChange={e => handleServiceFeatureChange(idx, featureIdx, e.target.value)} className={inputClass} />
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteServiceFeature(idx, featureIdx)}
+                                className="flex min-h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-500 transition hover:bg-red-100"
+                                title="Feature entfernen"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddServiceFeature(idx)}
+                        className="self-start rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 font-display text-[11px] font-black uppercase tracking-wider text-brand-orange-dark transition hover:bg-orange-100"
+                      >
+                        + Feature hinzufügen
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className={panelClass}>
-                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                  <ShieldCheck size={17} className="text-brand-orange-dark" />
-                  Zusatz-Support Block
-                </h3>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <ShieldCheck size={17} className="text-brand-orange-dark" />
+                    Zusatz-Support Block
+                  </h3>
+                  <BlockHideToggle
+                    checked={servicesContent.hideExtra}
+                    onChange={(hidden) => handleServicesVisibilityChange('hideExtra', hidden)}
+                  />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input value={servicesContent.extraEyebrow} onChange={e => handleServicesContentChange('extraEyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
                   <input value={servicesContent.extraTitle} onChange={e => handleServicesContentChange('extraTitle', e.target.value)} className={inputClass} placeholder="Titel" />
                   <input value={servicesContent.extraImageUrl} onChange={e => handleServicesContentChange('extraImageUrl', e.target.value)} className={inputClass} placeholder="Bild-URL" />
                   <input value={servicesContent.extraButtonLabel} onChange={e => handleServicesContentChange('extraButtonLabel', e.target.value)} className={inputClass} placeholder="Button Text" />
                   <textarea rows={3} value={servicesContent.extraDescription} onChange={e => handleServicesContentChange('extraDescription', e.target.value)} className={`${inputClass} resize-none leading-relaxed md:col-span-2`} placeholder="Beschreibung" />
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Tab: Galerie Content Editor */}
+        {activeTab === 'gallery' && (() => {
+          const gallery: GalleryContent = config.gallery || { ...DEFAULT_PRICING_CONFIG.gallery!, items: [...DEFAULT_PRICING_CONFIG.gallery!.items] };
+          const serviceNames = config.services.map(service => service.name).filter(Boolean);
+          const pageVisibility = config.pageVisibility || { ...DEFAULT_PRICING_CONFIG.pageVisibility! };
+          return (
+            <div className="flex flex-col gap-6">
+              <div className={workbenchClass}>
+                <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-orange text-white shadow-xl shadow-brand-orange/20">
+                      <Images size={23} />
+                    </div>
+                    <div>
+                      <p className="font-display text-[11px] font-black uppercase tracking-[0.22em] text-brand-orange-dark">Galerie</p>
+                      <h2 className="mt-1 font-display text-2xl font-black uppercase tracking-tight text-primary-navy">Projektbilder verwalten</h2>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                        Bilder pro Dienstleistung pflegen. Die öffentliche Galerie kann anschließend nach Leistungsbereich gefiltert werden.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <BlockHideToggle
+                      checked={pageVisibility.hideGalerie}
+                      onChange={(hidden) => handlePageVisibilityChange('hideGalerie', hidden)}
+                      label="Galerie-Seite ausblenden"
+                    />
+                    <button onClick={handleSaveConfig}
+                      className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand-orange px-5 py-3 font-display text-xs font-black uppercase text-white shadow-xl shadow-brand-orange/20 transition hover:-translate-y-0.5 hover:bg-brand-orange-dark">
+                      <Save size={15} />
+                      Galerie speichern
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className={panelClass}>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <Type size={17} className="text-brand-orange-dark" />
+                    Seitenkopf
+                  </h3>
+                  <BlockHideToggle
+                    checked={gallery.hideHeader}
+                    onChange={(hidden) => handleGalleryChange('hideHeader', hidden)}
+                    label="Seitenkopf ausblenden"
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <input value={gallery.eyebrow} onChange={e => handleGalleryChange('eyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
+                  <input value={gallery.title} onChange={e => handleGalleryChange('title', e.target.value)} className={inputClass} placeholder="Titel" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                {serviceNames.map(serviceName => {
+                  const relatedItems = gallery.items
+                    .map((item, index) => ({ item, index }))
+                    .filter(entry => entry.item.serviceName === serviceName);
+                  return (
+                    <div key={serviceName} className={panelClass}>
+                      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                        <div>
+                          <h3 className={sectionTitleClass}>
+                            <Image size={17} className="text-brand-orange-dark" />
+                            {serviceName}
+                          </h3>
+                          <p className="mt-1 text-xs text-slate-500">{relatedItems.length} Galerieeinträge</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleAddGalleryItem(serviceName)}
+                          className="rounded-2xl bg-primary-navy px-4 py-2 font-display text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-slate-950"
+                        >
+                          + Bild hinzufügen
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col gap-4">
+                        {relatedItems.length === 0 && (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center text-xs font-bold text-slate-500">
+                            Noch keine Bilder für diese Dienstleistung.
+                          </div>
+                        )}
+                        {relatedItems.map(({ item, index }) => (
+                          <div key={item.id} className="rounded-2xl border border-slate-200 bg-white/75 p-4 shadow-sm">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                              <span className="font-display text-xs font-black uppercase tracking-wider text-primary-navy">Galeriebild</span>
+                              <div className="flex flex-wrap gap-2">
+                                <BlockHideToggle
+                                  checked={item.hidden}
+                                  onChange={(hidden) => handleGalleryItemChange(index, 'hidden', hidden)}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteGalleryItem(index)}
+                                  className="flex min-h-9 items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 font-display text-[10px] font-black uppercase tracking-wider text-red-500 transition hover:bg-red-100"
+                                >
+                                  <Trash2 size={11} />
+                                  <span>Entfernen</span>
+                                </button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                              <div className="flex flex-col gap-1">
+                                <label className={labelClass}>Bild-URL</label>
+                                <input value={item.imageUrl} onChange={e => handleGalleryItemChange(index, 'imageUrl', e.target.value)} className={inputClass} placeholder="https://..." />
+                              </div>
+                              <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-center font-display text-[11px] font-black uppercase tracking-wider text-brand-orange-dark transition hover:-translate-y-0.5 hover:bg-orange-100">
+                                <UploadCloud size={15} />
+                                <span>Bild vom Gerät hochladen</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={(e) => handleGalleryImageUpload(index, e)}
+                                />
+                              </label>
+                              {item.imageUrl && (
+                                <div className="h-36 overflow-hidden rounded-2xl bg-primary-navy">
+                                  <img
+                                    src={item.imageUrl}
+                                    alt={item.title || serviceName}
+                                    className="h-full w-full object-cover opacity-80"
+                                    referrerPolicy="no-referrer"
+                                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className={panelClass}>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <Images size={17} className="text-brand-orange-dark" />
+                    Alle Galerieeinträge
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleAddGalleryItem()}
+                    className="rounded-2xl bg-brand-orange px-4 py-2 font-display text-[11px] font-black uppercase tracking-wider text-white transition hover:bg-brand-orange-dark"
+                  >
+                    + Freien Eintrag hinzufügen
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {gallery.items.map((item, index) => (
+                    <div key={item.id} className="rounded-2xl border border-slate-200 bg-white/70 p-4">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <select value={item.serviceName} onChange={e => handleGalleryItemChange(index, 'serviceName', e.target.value)} className={inputClass}>
+                          {serviceNames.map(serviceName => (
+                            <option key={serviceName} value={serviceName}>{serviceName}</option>
+                          ))}
+                          {!serviceNames.includes(item.serviceName) && <option value={item.serviceName}>{item.serviceName}</option>}
+                        </select>
+                        <BlockHideToggle
+                          checked={item.hidden}
+                          onChange={(hidden) => handleGalleryItemChange(index, 'hidden', hidden)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 gap-3">
+                        <input value={item.imageUrl} onChange={e => handleGalleryItemChange(index, 'imageUrl', e.target.value)} className={inputClass} placeholder="Bild-URL oder hochgeladene Datei" />
+                        <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-center font-display text-[11px] font-black uppercase tracking-wider text-brand-orange-dark transition hover:-translate-y-0.5 hover:bg-orange-100">
+                          <UploadCloud size={15} />
+                          <span>Bild vom Gerät hochladen</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e) => handleGalleryImageUpload(index, e)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGalleryItem(index)}
+                          className="self-start rounded-xl border border-red-200 bg-red-50 px-3 py-2 font-display text-[10px] font-black uppercase tracking-wider text-red-500 transition hover:bg-red-100"
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1428,10 +2057,16 @@ export default function AdminView({
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className={panelClass}>
-                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                    <Type size={17} className="text-brand-orange-dark" />
-                    Intro & Kennzahlen
-                  </h3>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <h3 className={sectionTitleClass}>
+                      <Type size={17} className="text-brand-orange-dark" />
+                      Intro & Kennzahlen
+                    </h3>
+                    <BlockHideToggle
+                      checked={about.hideIntro}
+                      onChange={(hidden) => handleAboutVisibilityChange('hideIntro', hidden)}
+                    />
+                  </div>
                   <div className="flex flex-col gap-4">
                     <input value={about.eyebrow} onChange={e => handleAboutChange('eyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
                     <input value={about.title} onChange={e => handleAboutChange('title', e.target.value)} className={inputClass} placeholder="Titel" />
@@ -1447,10 +2082,16 @@ export default function AdminView({
                 </div>
 
                 <div className={panelClass}>
-                  <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                    <ShieldCheck size={17} className="text-brand-orange-dark" />
-                    Leitbild
-                  </h3>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                    <h3 className={sectionTitleClass}>
+                      <ShieldCheck size={17} className="text-brand-orange-dark" />
+                      Leitbild
+                    </h3>
+                    <BlockHideToggle
+                      checked={about.hideMission}
+                      onChange={(hidden) => handleAboutVisibilityChange('hideMission', hidden)}
+                    />
+                  </div>
                   <div className="flex flex-col gap-4">
                     <input value={about.missionEyebrow} onChange={e => handleAboutChange('missionEyebrow', e.target.value)} className={inputClass} placeholder="Eyebrow" />
                     <input value={about.missionTitle} onChange={e => handleAboutChange('missionTitle', e.target.value)} className={inputClass} placeholder="Titel" />
@@ -1462,10 +2103,24 @@ export default function AdminView({
               </div>
 
               <div className={panelClass}>
-                <h3 className={`${sectionTitleClass} border-b border-slate-200 pb-4 mb-5`}>
-                  <Users size={17} className="text-brand-orange-dark" />
-                  Team & Kundenstimmen
-                </h3>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <h3 className={sectionTitleClass}>
+                    <Users size={17} className="text-brand-orange-dark" />
+                    Team & Kundenstimmen
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <BlockHideToggle
+                      checked={about.hideTeam}
+                      onChange={(hidden) => handleAboutVisibilityChange('hideTeam', hidden)}
+                      label="Team ausblenden"
+                    />
+                    <BlockHideToggle
+                      checked={about.hideTestimonials}
+                      onChange={(hidden) => handleAboutVisibilityChange('hideTestimonials', hidden)}
+                      label="Kundenstimmen ausblenden"
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <input value={about.teamTitle} onChange={e => handleAboutChange('teamTitle', e.target.value)} className={inputClass} placeholder="Team Titel" />
                   <input value={about.teamSubtitle} onChange={e => handleAboutChange('teamSubtitle', e.target.value)} className={inputClass} placeholder="Team Untertitel" />
@@ -1476,9 +2131,15 @@ export default function AdminView({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {about.testimonials.map((test, idx) => (
                     <div key={idx} className="rounded-2xl border border-slate-200 bg-white/70 p-4">
-                      <div className="mb-3 flex items-center gap-2 text-brand-orange-dark">
-                        <MessageSquareQuote size={16} />
-                        <span className="font-display text-xs font-black uppercase">Stimme {idx + 1}</span>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-brand-orange-dark">
+                        <div className="flex items-center gap-2">
+                          <MessageSquareQuote size={16} />
+                          <span className="font-display text-xs font-black uppercase">Stimme {idx + 1}</span>
+                        </div>
+                        <BlockHideToggle
+                          checked={test.hidden}
+                          onChange={(hidden) => handleTestimonialChange(idx, 'hidden', hidden)}
+                        />
                       </div>
                       <div className="flex flex-col gap-3">
                         <input value={test.name} onChange={e => handleTestimonialChange(idx, 'name', e.target.value)} className={inputClass} placeholder="Name" />

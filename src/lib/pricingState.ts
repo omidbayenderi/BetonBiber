@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ServiceDetail, TeamMember, Testimonial } from '../types';
+import { GalleryItem, ServiceDetail, TeamMember, Testimonial } from '../types';
 
 export interface ServicePricing {
   name: string;
@@ -23,6 +23,9 @@ export interface ContactConfig {
   vatId: string;
   registerInfo: string;
   supervisoryAuthority: string;
+  hideContactIntro?: boolean;
+  hideContactDetails?: boolean;
+  hideContactMap?: boolean;
 }
 
 export interface HomepageStat {
@@ -42,6 +45,11 @@ export interface HomepageContent {
   heroHighlight: string;
   heroDescription: string;
   heroImageUrl: string;
+  hideHero?: boolean;
+  hideEstimator?: boolean;
+  hideStats?: boolean;
+  hideCompetences?: boolean;
+  hideTeamTeaser?: boolean;
   stat1: HomepageStat;
   stat2: HomepageStat;
   stat3: HomepageStat;
@@ -56,6 +64,9 @@ export interface ServicesContent {
   eyebrow: string;
   title: string;
   description: string;
+  hideHeader?: boolean;
+  hideServices?: boolean;
+  hideExtra?: boolean;
   items: ServiceDetail[];
   extraEyebrow: string;
   extraTitle: string;
@@ -83,6 +94,10 @@ export interface AboutContent {
   testimonialsTitle: string;
   testimonialsSubtitle: string;
   recommendationLabel: string;
+  hideIntro?: boolean;
+  hideMission?: boolean;
+  hideTeam?: boolean;
+  hideTestimonials?: boolean;
   testimonials: Testimonial[];
 }
 
@@ -98,6 +113,26 @@ export interface FooterContent {
   legalLink2: string;
   legalLink3: string;
   copyrightSuffix: string;
+  hideBrand?: boolean;
+  hideServices?: boolean;
+  hideLegal?: boolean;
+  hideCopyright?: boolean;
+}
+
+export interface GalleryContent {
+  eyebrow: string;
+  title: string;
+  description: string;
+  hideHeader?: boolean;
+  items: GalleryItem[];
+}
+
+export interface PageVisibilityContent {
+  hideHome?: boolean;
+  hideLeistungen?: boolean;
+  hideGalerie?: boolean;
+  hideUberUns?: boolean;
+  hideKontakt?: boolean;
 }
 
 export interface PricingConfig {
@@ -120,6 +155,8 @@ export interface PricingConfig {
   servicesContent?: ServicesContent;
   about?: AboutContent;
   footer?: FooterContent;
+  gallery?: GalleryContent;
+  pageVisibility?: PageVisibilityContent;
 }
 
 export const DEFAULT_PRICING_CONFIG: PricingConfig = {
@@ -127,7 +164,10 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     { name: 'Kellerabdichtung', basePricePerM2: 75, materials: 'Bitumenbahnen, KMB-Massen, Drainagevlies, Horizontalsperre-Gel' },
     { name: 'Riss-sanierung', basePricePerM2: 120, materials: 'Epoxidharz-Injektat, Injektionspacker, Quellschaum, PUR-Harze' },
     { name: 'Betonsanierung', basePricePerM2: 95, materials: 'Korrosionsschutz, Schwindarmer PCC-Mörtel, Tiefenimprägnierung' },
-    { name: 'Schimmelbeseitigung', basePricePerM2: 45, materials: 'Mikrobielle Reiniger, Kalziumsilikatplatten, Silikatfarbe' }
+    { name: 'Schimmelbeseitigung', basePricePerM2: 45, materials: 'Mikrobielle Reiniger, Kalziumsilikatplatten, Silikatfarbe' },
+    { name: 'Abriss & Entkernung', basePricePerM2: 65, materials: 'Staubschutzwände, Abbruchwerkzeuge, Containerlogistik, Entsorgungsnachweise' },
+    { name: 'Fugen Sanierung', basePricePerM2: 55, materials: 'Elastische Dichtstoffe, Primer, Hinterfüllprofile, Fugensanierungssysteme' },
+    { name: 'Balkon arbeiten', basePricePerM2: 110, materials: 'Verbundabdichtung, Gefälleausgleich, Balkonbeschichtung, Randprofile' }
   ],
   factors: {
     dampness: {
@@ -256,6 +296,39 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBILNTJD1Ho4PRzi8Iey1Srffd0uh-J127WvzAudeURb1xd44zVWD5CPxme3wxHaj9GJzryWjh8qeArQo0Xgk5wyQbG4hm1ozxMSBUXoYH5qA9rncFKCXUreyV3vMw2j0-YZIUJVOFRh__DxNDWk0RR6hsCwiXayOnUgnt4NfjrO1PD4LVpyCiguKww3C6rKVp0U8u2A9HodeQ-DQIaN50RbxZAzKnXdzhF7aTNaduyYClvVlD8XB_iXRGpc459of15xrSAPQhIuWk',
         bgDark: false,
         tag: 'Gesundheit'
+      },
+      {
+        id: 'abriss_entkernung',
+        title: 'Abriss & Entkernung',
+        iconName: 'construction',
+        shortDesc: 'Kontrollierter Rückbau, Entkernung und saubere Vorbereitung für Sanierungsarbeiten.',
+        longDesc: 'Wir übernehmen selektive Abbrucharbeiten und Entkernungen als belastbare Grundlage für Abdichtung, Betonsanierung oder Modernisierung. Staubschutz, Sortierung und Entsorgung werden sauber geplant und dokumentiert.',
+        features: ['Selektiver Innenrückbau', 'Entkernung von Bestandsflächen', 'Staubschutz & Baustellenlogistik', 'Fachgerechte Entsorgung'],
+        imageUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80',
+        bgDark: false,
+        tag: 'Rückbau'
+      },
+      {
+        id: 'fugen_sanierung',
+        title: 'Fugen Sanierung',
+        iconName: 'architecture',
+        shortDesc: 'Erneuerung und Abdichtung schadhafter Anschluss-, Bewegungs- und Dehnfugen.',
+        longDesc: 'Schadhafte Fugen sind häufig Eintrittspunkte für Feuchtigkeit. Wir entfernen alte Dichtstoffe, bereiten die Fugenflanken fachgerecht vor und bauen dauerelastische Fugensysteme mit passendem Primer und Hinterfüllprofil ein.',
+        features: ['Altfugen entfernen', 'Fugenflanken vorbereiten', 'Dauerelastische Neuverfugung', 'Abdichtung von Anschlussfugen'],
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAOdtqVL98e_vlTMt7VHs59mnnMV2SUTLOMIeryWbsAN02pZnvHzbCgcA1ByTUVye1yP-1c12WuKYN-b3aNa8APqvs0QNb0Y4XOuxiXqt6qFNPnukRn3q8GixocawqWBXLWYDAsSdyo0ZZQRU3PgsUdXNkSI5AhxQ7oAkEBzxpb6taPwOwUTDNMQT3deKWxOhTIrCdqnVegw0Uc4crKthmCdMIfHR3Z3baapdveczb50K4-ojDdioANw2ZPl9ipEbONcTXGMjZkx58',
+        bgDark: false,
+        tag: 'Abdichtung'
+      },
+      {
+        id: 'balkon_arbeiten',
+        title: 'Balkon arbeiten',
+        iconName: 'foundation',
+        shortDesc: 'Balkonabdichtung, Beschichtung und Sanierung von Rand- und Anschlussbereichen.',
+        longDesc: 'Wir sanieren Balkonflächen mit tragfähiger Untergrundvorbereitung, Gefälleausgleich, Verbundabdichtung und widerstandsfähigen Beschichtungssystemen. Besondere Aufmerksamkeit gilt Anschlüssen, Randprofilen und Wasserführung.',
+        features: ['Untergrundvorbereitung', 'Gefälleausgleich & Abdichtung', 'Balkonbeschichtung', 'Randprofile & Anschlüsse'],
+        imageUrl: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=80',
+        bgDark: false,
+        tag: 'Außenbereich'
       }
     ],
     extraEyebrow: 'ZUSÄTZLICHER INGENIEUR-SUPPORT',
@@ -316,10 +389,77 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     legalLink2: 'Nutzungsbedingungen / Terms of Use',
     legalLink3: 'AGB / Impressum',
     copyrightSuffix: 'Betonbiber Bautenschutz. Alle Rechte vorbehalten. | Industrial Integrity Engineered.'
+  },
+  gallery: {
+    eyebrow: 'PROJEKTGALERIE',
+    title: 'Ausgewählte Arbeiten aus der Praxis',
+    description: 'Filtern Sie Referenzen nach Leistungsbereich und gewinnen Sie einen schnellen Eindruck von typischen Sanierungs-, Abdichtungs- und Rückbauarbeiten.',
+    items: [
+      {
+        id: 'gallery_keller_1',
+        serviceName: 'Kellerabdichtung',
+        title: 'Kellerwand fachgerecht abgedichtet',
+        description: 'Vorbereitete Wandflächen mit Abdichtungssystem und sauberer Anschlussausbildung.',
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBILNTJD1Ho4PRzi8Iey1Srffd0uh-J127WvzAudeURb1xd44zVWD5CPxme3wxHaj9GJzryWjh8qeArQo0Xgk5wyQbG4hm1ozxMSBUXoYH5qA9rncFKCXUreyV3vMw2j0-YZIUJVOFRh__DxNDWk0RR6hsCwiXayOnUgnt4NfjrO1PD4LVpyCiguKww3C6rKVp0U8u2A9HodeQ-DQIaN50RbxZAzKnXdzhF7aTNaduyYClvVlD8XB_iXRGpc459of15xrSAPQhIuWk'
+      },
+      {
+        id: 'gallery_riss_1',
+        serviceName: 'Riss-sanierung',
+        title: 'Rissverpressung im Betonbauteil',
+        description: 'Injektionsvorbereitung für kraftschlüssige und abdichtende Sanierung.',
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDO28jTC7p39lFLiDe4iUdW_Gf8Sws3qSO1cTF_Rrv07iBBtc8yog0ZMfdmLX7XqZepuw1f0TbWsD_zSj54r6DWykwpBIMaKoxfjw6_tsALWqRHg2VgDbU2BY2nciNyWwnDpuh5OuF-G7k-vl_613cPzUVQXZ8GXmF8dGHtor4hPyYwRvC6id3QRoC7ugZyUNaWV0olwipc_bx9vRmAiZNEtzyRHImxxWz5unPc8C1hcP0CbxUOWXYCLUqxTCChs2K80c8s47yExTM'
+      },
+      {
+        id: 'gallery_beton_1',
+        serviceName: 'Betonsanierung',
+        title: 'Betonfläche instandgesetzt',
+        description: 'Untergrundvorbereitung, Reprofilierung und Schutzbeschichtung für beanspruchte Flächen.',
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAOdtqVL98e_vlTMt7VHs59mnnMV2SUTLOMIeryWbsAN02pZnvHzbCgcA1ByTUVye1yP-1c12WuKYN-b3aNa8APqvs0QNb0Y4XOuxiXqt6qFNPnukRn3q8GixocawqWBXLWYDAsSdyo0ZZQRU3PgsUdXNkSI5AhxQ7oAkEBzxpb6taPwOwUTDNMQT3deKWxOhTIrCdqnVegw0Uc4crKthmCdMIfHR3Z3baapdveczb50K4-ojDdioANw2ZPl9ipEbONcTXGMjZkx58'
+      },
+      {
+        id: 'gallery_balkon_1',
+        serviceName: 'Balkon arbeiten',
+        title: 'Balkonfläche vorbereitet',
+        description: 'Abdichtungs- und Beschichtungsaufbau für außenliegende Balkonflächen.',
+        imageUrl: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=80'
+      },
+      {
+        id: 'gallery_abriss_1',
+        serviceName: 'Abriss & Entkernung',
+        title: 'Selektive Entkernung',
+        description: 'Geordnete Vorbereitung von Bestandsflächen für nachfolgende Sanierungsarbeiten.',
+        imageUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80'
+      }
+    ]
+  },
+  pageVisibility: {
+    hideHome: false,
+    hideLeistungen: false,
+    hideGalerie: false,
+    hideUberUns: false,
+    hideKontakt: false
   }
 };
 
 const STORAGE_KEY = 'betonbiber_pricing_config_v1';
+
+function mergeMissingServices(services: ServicePricing[] = []): ServicePricing[] {
+  const existingNames = new Set(services.map(service => service.name));
+  const missingDefaults = DEFAULT_PRICING_CONFIG.services.filter(service => !existingNames.has(service.name));
+  return [...services, ...missingDefaults.map(service => ({ ...service }))];
+}
+
+function mergeMissingServiceContentItems(items: ServiceDetail[] = []): ServiceDetail[] {
+  const existingIds = new Set(items.map(item => item.id));
+  const missingDefaults = DEFAULT_PRICING_CONFIG.servicesContent!.items.filter(item => !existingIds.has(item.id));
+  return [...items, ...missingDefaults.map(item => ({ ...item, features: [...item.features] }))];
+}
+
+function mergeMissingGalleryItems(items: GalleryItem[] = []): GalleryItem[] {
+  const existingIds = new Set(items.map(item => item.id));
+  const missingDefaults = DEFAULT_PRICING_CONFIG.gallery!.items.filter(item => !existingIds.has(item.id));
+  return [...items, ...missingDefaults.map(item => ({ ...item }))];
+}
 
 export function getPricingConfig(): PricingConfig {
   try {
@@ -328,6 +468,7 @@ export function getPricingConfig(): PricingConfig {
       const parsed = JSON.parse(stored);
       // Ensure structure is correct
       if (parsed.services && parsed.factors) {
+        parsed.services = mergeMissingServices(parsed.services);
         if (!parsed.contact) {
           parsed.contact = { ...DEFAULT_PRICING_CONFIG.contact! };
         } else {
@@ -341,6 +482,12 @@ export function getPricingConfig(): PricingConfig {
         }
         if (!parsed.servicesContent) {
           parsed.servicesContent = { ...DEFAULT_PRICING_CONFIG.servicesContent!, items: [ ...DEFAULT_PRICING_CONFIG.servicesContent!.items ] };
+        } else {
+          parsed.servicesContent = {
+            ...DEFAULT_PRICING_CONFIG.servicesContent!,
+            ...parsed.servicesContent,
+            items: mergeMissingServiceContentItems(parsed.servicesContent.items)
+          };
         }
         if (!parsed.about) {
           parsed.about = { ...DEFAULT_PRICING_CONFIG.about!, testimonials: [ ...DEFAULT_PRICING_CONFIG.about!.testimonials ] };
@@ -348,6 +495,19 @@ export function getPricingConfig(): PricingConfig {
         if (!parsed.footer) {
           parsed.footer = { ...DEFAULT_PRICING_CONFIG.footer! };
         }
+        if (!parsed.gallery) {
+          parsed.gallery = { ...DEFAULT_PRICING_CONFIG.gallery!, items: [ ...DEFAULT_PRICING_CONFIG.gallery!.items ] };
+        } else {
+          parsed.gallery = {
+            ...DEFAULT_PRICING_CONFIG.gallery!,
+            ...parsed.gallery,
+            items: mergeMissingGalleryItems(parsed.gallery.items)
+          };
+        }
+        parsed.pageVisibility = {
+          ...DEFAULT_PRICING_CONFIG.pageVisibility!,
+          ...(parsed.pageVisibility || {})
+        };
         return parsed;
       }
     }

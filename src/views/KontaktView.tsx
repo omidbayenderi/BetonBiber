@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Phone, Mail, MapPin, Send, ShieldAlert, Award, RefreshCw } from 'lucide-react';
 import { QuoteRequest } from '../types';
 import { MINIMAP_URL } from '../constants';
 import QuoteRequestList from '../components/QuoteRequestList';
 import { getPricingConfig } from '../lib/pricingState';
+import { hasAnyText, hasText } from '../lib/contentVisibility';
 
 interface KontaktProps {
   requests: QuoteRequest[];
@@ -47,6 +48,18 @@ export default function KontaktView({
 
   const [mapType, setMapType] = useState<'standard' | 'sat'>('standard');
   const [mapZoom, setMapZoom] = useState<number>(14);
+  const contact = pricingConfig.contact;
+  const hasContactIntro = !contact?.hideContactIntro;
+  const hasPhone = hasAnyText(contact?.phone, contact?.phoneRaw);
+  const hasEmail = hasText(contact?.email);
+  const hasAddress = hasAnyText(contact?.streetAddress, contact?.postalCity);
+  const hasContactDetails = !contact?.hideContactDetails && (hasPhone || hasEmail || hasAddress);
+  const hasContactMap = !contact?.hideContactMap;
+  const hasContactAside = hasContactDetails || hasContactMap;
+  const serviceOptions = useMemo(
+    () => pricingConfig.services.map(service => service.name).filter(hasText),
+    [pricingConfig.services]
+  );
 
   // Listen to config updates from admin panel page
   useEffect(() => {
@@ -58,6 +71,12 @@ export default function KontaktView({
       window.removeEventListener('pricing_config_updated', handleUpdated);
     };
   }, []);
+
+  useEffect(() => {
+    if (serviceOptions.length > 0 && !serviceOptions.includes(formData.serviceType)) {
+      setFormData(prev => ({ ...prev, serviceType: serviceOptions[0] }));
+    }
+  }, [formData.serviceType, serviceOptions]);
 
   // Apply parameters from estimator calculation if they exist
   useEffect(() => {
@@ -125,7 +144,7 @@ export default function KontaktView({
       name: '',
       email: '',
       phone: '',
-      serviceType: 'Kellerabdichtung',
+      serviceType: serviceOptions[0] || 'Kellerabdichtung',
       areaSize: '',
       message: ''
     });
@@ -136,7 +155,7 @@ export default function KontaktView({
       <div className="max-w-[1240px] w-full flex flex-col gap-12">
         
         {/* Header Intro Title */}
-        <div className="text-center max-w-xl mx-auto flex flex-col gap-3">
+        {hasContactIntro && <div className="text-center max-w-xl mx-auto flex flex-col gap-3">
           <span className="self-center text-xs font-sans font-extrabold text-brand-orange bg-brand-orange/15 px-3 py-1 rounded">
             KOSTENLOSE BERATUNG
           </span>
@@ -146,20 +165,20 @@ export default function KontaktView({
           <p className="font-sans text-sm text-brand-text-muted leading-relaxed">
             Ermitteln Sie jetzt ein Festpreisangebot für Ihr Sanierungsobjekt vor Ort oder stellen Sie eine allgemeine Frage.
           </p>
-        </div>
+        </div>}
 
         {/* Info Blocks and Form Box Side-by-Side */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start" id="contact-form-anchor">
           
           {/* Left Column Contact Details + Simulated Map */}
-          <div className="lg:col-span-5 flex flex-col gap-8">
-            <div className="bg-white border-2 border-primary-navy p-6 rounded-lg flex flex-col gap-5">
+          {hasContactAside && <div className="lg:col-span-5 flex flex-col gap-8">
+            {hasContactDetails && <div className="bg-white border-2 border-primary-navy p-6 rounded-lg flex flex-col gap-5">
               <h3 className="font-display font-black text-lg text-primary-navy uppercase tracking-tight">
                 Direkter Draht
               </h3>
 
               <div className="flex flex-col gap-4 font-sans text-sm">
-                <div className="flex gap-3.5 items-center">
+                {hasPhone && <div className="flex gap-3.5 items-center">
                   <div className="bg-brand-orange/10 text-brand-orange-dark p-2.5 rounded-full">
                     <Phone size={16} />
                   </div>
@@ -169,12 +188,12 @@ export default function KontaktView({
                       href={`tel:${pricingConfig.contact?.phoneRaw || '+498005556677'}`} 
                       className="text-primary-navy font-bold hover:text-brand-orange-dark transition-colors"
                     >
-                      {pricingConfig.contact?.phone || '+49 (0) 800 555 6677'}
+                      {pricingConfig.contact?.phone || pricingConfig.contact?.phoneRaw}
                     </a>
                   </div>
-                </div>
+                </div>}
 
-                <div className="flex gap-3.5 items-center">
+                {hasEmail && <div className="flex gap-3.5 items-center">
                   <div className="bg-brand-orange/10 text-brand-orange-dark p-2.5 rounded-full">
                     <Mail size={16} />
                   </div>
@@ -184,27 +203,27 @@ export default function KontaktView({
                       href={`mailto:${pricingConfig.contact?.email || 'anfrage@betonbiber.de'}`} 
                       className="text-primary-navy font-bold hover:text-brand-orange-dark transition-colors"
                     >
-                      {pricingConfig.contact?.email || 'anfrage@betonbiber.de'}
+                      {pricingConfig.contact?.email}
                     </a>
                   </div>
-                </div>
+                </div>}
 
-                <div className="flex gap-3.5 items-center">
+                {hasAddress && <div className="flex gap-3.5 items-center">
                   <div className="bg-brand-orange/10 text-brand-orange-dark p-2.5 rounded-full">
                     <MapPin size={16} />
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 font-extrabold uppercase tracking-widest leading-none">Zentrale</p>
                     <p className="text-primary-navy font-bold">
-                      {pricingConfig.contact?.streetAddress || 'Am Biberdamm 12'}, {pricingConfig.contact?.postalCity || '10115 Berlin'}
+                      {[pricingConfig.contact?.streetAddress, pricingConfig.contact?.postalCity].filter(hasText).join(', ')}
                     </p>
                   </div>
-                </div>
+                </div>}
               </div>
-            </div>
+            </div>}
 
             {/* Simulated Interactive Map */}
-            <div className="bg-white border-2 border-primary-navy p-4 rounded-lg flex flex-col gap-3">
+            {hasContactMap && <div className="bg-white border-2 border-primary-navy p-4 rounded-lg flex flex-col gap-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-display font-bold text-primary-navy flex items-center gap-1 uppercase tracking-wide">
                   <MapPin size={14} className="text-brand-orange-dark" />
@@ -275,11 +294,11 @@ export default function KontaktView({
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
+            </div>}
+          </div>}
 
           {/* Right Column The Contact Form */}
-          <div className="lg:col-span-7">
+          <div className={hasContactAside ? 'lg:col-span-7' : 'lg:col-span-12'}>
             <form
               ref={formRef}
               onSubmit={handleSubmit}
@@ -370,11 +389,9 @@ export default function KontaktView({
                   onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
                   className="bg-brand-bg/50 border-2 border-gray-200 hover:border-primary-navy/40 focus:border-primary-navy p-2.5 rounded text-xs font-sans font-bold text-primary-navy outline-none"
                 >
-                  <option value="Kellerabdichtung">Kellerabdichtung</option>
-                  <option value="Riss-sanierung">Riss-sanierung</option>
-                  <option value="Betonsanierung">Betonsanierung</option>
-                  <option value="Schimmelbeseitigung">Schimmelbeseitigung</option>
-                  <option value="Spezialgutachten">Sachverständigengutachten</option>
+                  {serviceOptions.map(serviceName => (
+                    <option key={serviceName} value={serviceName}>{serviceName}</option>
+                  ))}
                 </select>
               </div>
 
