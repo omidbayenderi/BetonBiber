@@ -4,18 +4,11 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import emailjs from '@emailjs/browser';
-import { Phone, Mail, MapPin, Send, ShieldAlert, Award, RefreshCw, Loader2 } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, ShieldAlert, Award, RefreshCw } from 'lucide-react';
 import { QuoteRequest } from '../types';
 import { MINIMAP_URL } from '../constants';
 import QuoteRequestList from '../components/QuoteRequestList';
 import { getPricingConfig } from '../lib/pricingState';
-
-const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID  as string | undefined;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
-const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  as string | undefined;
-
-const emailjsConfigured = Boolean(EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY);
 
 interface KontaktProps {
   requests: QuoteRequest[];
@@ -50,7 +43,6 @@ export default function KontaktView({
     areaSize: '',
     message: ''
   });
-  const [isSending, setIsSending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [mapType, setMapType] = useState<'standard' | 'sat'>('standard');
@@ -89,7 +81,7 @@ export default function KontaktView({
     }
   }, [exportParams]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.phone) {
@@ -97,7 +89,17 @@ export default function KontaktView({
       return;
     }
 
-    setIsSending(true);
+    const adminEmail = pricingConfig.contact?.email || 'anfrage@betonbiber.de';
+    const subject = encodeURIComponent(`Neue Anfrage: ${formData.serviceType} – ${formData.name}`);
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `E-Mail: ${formData.email}\n` +
+      `Telefon: ${formData.phone}\n` +
+      `Leistung: ${formData.serviceType}\n` +
+      (formData.areaSize ? `Fläche: ${formData.areaSize} m²\n` : '') +
+      `\nNachricht:\n${formData.message}`
+    );
+    window.location.href = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
 
     const newRequest: QuoteRequest = {
       id: Math.random().toString(36).substring(2, 9),
@@ -112,22 +114,7 @@ export default function KontaktView({
       status: 'Received'
     };
 
-    // Send email via EmailJS if configured, otherwise fall back to local-only
-    if (emailjsConfigured && formRef.current) {
-      try {
-        await emailjs.sendForm(
-          EMAILJS_SERVICE_ID!,
-          EMAILJS_TEMPLATE_ID!,
-          formRef.current,
-          { publicKey: EMAILJS_PUBLIC_KEY! }
-        );
-      } catch (err) {
-        console.error('EmailJS send failed:', err);
-      }
-    }
-
     onAddRequest(newRequest);
-    setIsSending(false);
 
     triggerSuccess(
       'Vielen Dank für Ihr Vertrauen',
@@ -298,10 +285,6 @@ export default function KontaktView({
               onSubmit={handleSubmit}
               className="bg-white border-4 border-primary-navy p-6 md:p-8 rounded-xl shadow-md flex flex-col gap-5"
             >
-              {/* Hidden fields read by EmailJS template */}
-              <input type="hidden" name="to_email" value={pricingConfig.contact?.email || 'anfrage@betonbiber.de'} />
-              <input type="hidden" name="company_name" value={pricingConfig.contact?.companyName || 'BetonBiber'} />
-
               <div className="flex flex-col">
                 <h3 className="font-display font-black text-xl text-primary-navy uppercase tracking-tight">
                   Angebot anfordern
@@ -417,20 +400,10 @@ export default function KontaktView({
 
               <button
                 type="submit"
-                disabled={isSending}
-                className="mt-2 bg-brand-orange hover:bg-brand-orange-dark disabled:opacity-60 disabled:cursor-not-allowed text-white font-display font-black text-xs uppercase py-3.5 px-6 rounded transition-all text-center flex items-center justify-center gap-2"
+                className="mt-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-display font-black text-xs uppercase py-3.5 px-6 rounded transition-all text-center flex items-center justify-center gap-2"
               >
-                {isSending ? (
-                  <>
-                    <Loader2 size={13} className="animate-spin" />
-                    <span>Wird gesendet…</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Nachricht absenden</span>
-                    <Send size={12} />
-                  </>
-                )}
+                <span>Nachricht absenden</span>
+                <Send size={12} />
               </button>
             </form>
           </div>
