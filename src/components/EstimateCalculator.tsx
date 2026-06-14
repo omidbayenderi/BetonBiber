@@ -240,19 +240,6 @@ export default function EstimateCalculator({ onExportToContact }: EstimateCalcul
                 </div>
               </div>
 
-              <div className="flex items-start gap-2">
-                <div className="bg-brand-orange text-white p-1 rounded mt-0.5">
-                  <ShieldCheck size={12} />
-                </div>
-                <div>
-                  <h5 className="font-display font-bold text-xs text-gray-400 uppercase tracking-wider">
-                    Garantie
-                  </h5>
-                  <p className="font-sans font-extrabold text-xs text-white">
-                    {pricingConfig.guaranteeYears} Jahre Gewähr.
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* Required materials bullet container */}

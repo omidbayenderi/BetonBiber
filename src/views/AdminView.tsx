@@ -531,7 +531,7 @@ export default function AdminView({
                     <p className="font-display text-[11px] font-black uppercase tracking-[0.22em] text-brand-orange-dark">Preise & Parameter</p>
                     <h2 className="mt-1 font-display text-2xl font-black uppercase tracking-tight text-primary-navy">Kalkulator-Steuerung</h2>
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-                      Tarife, Materialtexte, Risikofaktoren, Garantie, Kontakt und Teamprofile zentral pflegen.
+                      Tarife, Materialtexte, Risikofaktoren, Kontakt und Teamprofile zentral pflegen.
                     </p>
                   </div>
                 </div>
@@ -539,10 +539,6 @@ export default function AdminView({
                   <div className="rounded-2xl bg-slate-950 px-4 py-3 text-white">
                     <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Services</div>
                     <div className="mt-1 font-display text-xl font-black">{config.services.length}</div>
-                  </div>
-                  <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
-                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Garantie</div>
-                    <div className="mt-1 font-display text-xl font-black text-primary-navy">{config.guaranteeYears}J</div>
                   </div>
                   <div className="rounded-2xl bg-orange-50 px-4 py-3 shadow-sm ring-1 ring-orange-100">
                     <div className="text-[10px] font-extrabold uppercase tracking-wider text-orange-700">Team</div>
@@ -826,25 +822,6 @@ export default function AdminView({
                   <ShieldCheck size={17} className="text-brand-orange-dark" />
                   <span>4. Generelle Parameter</span>
                 </h3>
-
-                <div className="flex flex-col gap-1 w-full mb-6">
-                  <label className={labelClass}>
-                    Garantie Gewährleistungszeitraum
-                  </label>
-                  <p className="font-sans text-xs text-slate-500 leading-relaxed mb-2">
-                    Steuert den Zeitraum der Gewährleistung, der auf der Kostenvoranschlag-Umschlagsseite ausgegeben wird.
-                  </p>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={config.guaranteeYears}
-                      onChange={(e) => setConfig({ ...config, guaranteeYears: Number(e.target.value) })}
-                      className={`${compactInputClass} w-full pr-14`}
-                      required
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">Jahre</span>
-                  </div>
-                </div>
 
                 {/* Save actions panel */}
                 <div className="flex flex-col gap-3 pt-4 border-t border-slate-200">

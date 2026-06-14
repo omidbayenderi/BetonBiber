@@ -114,7 +114,6 @@ export interface PricingConfig {
       schwer: number;
     };
   };
-  guaranteeYears: number;
   contact?: ContactConfig;
   team?: TeamMember[];
   homepage?: HomepageContent;
@@ -142,7 +141,6 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
       schwer: 1.25
     }
   },
-  guaranteeYears: 10,
   contact: {
     companyName: 'Betonbiber Bautenschutz',
     responsiblePerson: 'Bitte Geschäftsführung/Inhaber ergänzen',
@@ -190,9 +188,9 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     heroBadge: 'Zertifizierter Meisterbetrieb',
     heroTitle: 'Zuverlässiger\nBautenschutz',
     heroHighlight: 'Auf Ewigkeit.',
-    heroDescription: 'Feuchte Keller, bröckelnder Beton oder rissige Fundamente gefährden den Wert Ihres Gebäudes. Wir bieten professionelle Abdichtungstechnik, Riss-sanierung und Schimmelbeseitigung mit 10 Jahren Systemgewährleistung.',
+    heroDescription: 'Feuchte Keller, bröckelnder Beton oder rissige Fundamente gefährden den Wert Ihres Gebäudes. Wir bieten professionelle Abdichtungstechnik, Riss-sanierung und Schimmelbeseitigung mit ingenieurmäßiger Bauwerkserhaltung.',
     heroImageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZyDN_jQ1_L_cOF1iSJIWqWMQDOBmsLVIRHCu68fId-vPzUD-VYhE5_IHGTFEYgg9AVcYepq1Qvr4rE2d0AvfYr6YcBTrwQldTsSSR6hAUqU9o9ZVIwJkb4satEH4TlMFVP6F_Bcyb9hRCvI0hngldBXzZQdJniAJouG4r8dovNh-VH90fkijdkVsermjHCQ_q7sLz6bejr7wJftP4hvqq2VzNXn9xtD0xDuSoj7lwK4BsmqYZqkVMOCv_wdnw4fJVUtYWYR4wUsw',
-    stat1: { value: '10', label: 'Jahre Garantie auf alle Abdichtungs-systeme' },
+    stat1: { value: 'DIN', label: 'Ausführung nach deutschen Baustandards' },
     stat2: { value: '100%', label: 'TÜV-geprüfte Materialien der DBZ' },
     stat3: { value: 'DIN 18533', label: 'Ausführung streng nach deutschen Baustandards und Sanierungsrichtlinien.' },
     featureTitle: 'Ingenieurmäßige Bauwerkserhaltung und Bautenschutz',
@@ -279,7 +277,7 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     missionTitle: 'Zertifizierte Sicherheit durch anerkannte Innovation',
     missionPoint1: 'Systemverträgliche Werkstoffe: Wir mischen niemals Werkstoffe unterschiedlicher Hersteller an einer Schadstelle.',
     missionPoint2: 'Detaillierter Schadensatlas: Vorbehandlungsgutachten zur Ermittlung des Ist-Zustandes der Baustoffe.',
-    missionPoint3: 'Festpreis-Verrsprechen: Verbindliche Preiszusagen für maximale Investitionssicherheit.',
+    missionPoint3: 'Transparente Kostenplanung: Klare und nachvollziehbare Preisgestaltung für maximale Planungssicherheit.',
     teamTitle: 'Unsere Bautenschutz-Spezialisten',
     teamSubtitle: 'Kompetente Profis mit Leidenschaft für Baustoffkunde',
     testimonialsTitle: 'Was unsere Kunden über uns sagen',
@@ -329,7 +327,7 @@ export function getPricingConfig(): PricingConfig {
     if (stored) {
       const parsed = JSON.parse(stored);
       // Ensure structure is correct
-      if (parsed.services && parsed.factors && parsed.guaranteeYears) {
+      if (parsed.services && parsed.factors) {
         if (!parsed.contact) {
           parsed.contact = { ...DEFAULT_PRICING_CONFIG.contact! };
         } else {
