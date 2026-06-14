@@ -1,18 +1,28 @@
 # BetonBiber
 
-Modern React/Vite website for BetonBiber Bautenschutz: services, estimator, contact workflow, legal center, cookie consent, SEO files, and a private admin panel for editing site content.
+Modern React/Vite website for BetonBiber Bautenschutz: public pages, service estimator, gallery, contact request workflow, legal center, cookie consent, SEO files, and a private admin panel for editing site content.
 
 ## Features
 
-- Public pages: Startseite, Leistungen, Über uns, Kontakt
+- Public pages: Startseite, Leistungen, Galerie, Über uns, Kontakt
 - Admin panel at `/amit`
 - Editable admin content:
   - pricing and estimator parameters
   - homepage hero, stats, features, and footer text
   - services page content
+  - service cards, calculator service options, and custom manual services
+  - gallery images per service with URL or local image upload
   - about page content and testimonials
   - company/contact/legal imprint data
   - team profiles with image URL or local image upload
+- Visibility controls:
+  - hide individual homepage/about/contact content blocks
+  - hide empty public sections automatically
+  - hide whole public pages from the admin panel
+- Contact request pipeline:
+  - customer forms are stored centrally through Supabase when configured
+  - requests are visible in the admin panel under `Kundenanfragen`
+  - public visitors do not see submitted customer requests
 - Legal center:
   - Datenschutzerklärung / Privacy Policy
   - Nutzungsbedingungen / Terms of Use
@@ -36,6 +46,7 @@ Modern React/Vite website for BetonBiber Bautenschutz: services, estimator, cont
 - Tailwind CSS v4
 - Lucide React icons
 - Browser storage for local admin/content state
+- Supabase REST API for central contact request storage
 
 ## Routes
 
@@ -43,6 +54,7 @@ Modern React/Vite website for BetonBiber Bautenschutz: services, estimator, cont
 | --- | --- |
 | `/` | Startseite |
 | `/leistungen` | Services |
+| `/galerie` | Gallery |
 | `/ueber-uns` | About page |
 | `/kontakt` | Contact and request form |
 | `/amit` | Admin panel, noindex |
@@ -102,14 +114,32 @@ The admin panel is available at `/amit`.
 
 Password verification uses SHA-256 hashing for the client-side gate. Configure `VITE_ADMIN_PASS_HASH` with the SHA-256 hash of your chosen password in local `.env` files and deployment secrets.
 
+The password hint is intentionally not shown in the login UI. Store the real password outside the repository.
+
+## Admin Editing Scope
+
+The admin panel currently supports editing:
+
+- calculator pricing, units, multipliers, and service options
+- manually added estimator services
+- homepage sections, stats, feature blocks, team CTA, and footer text
+- service page cards and service detail content
+- gallery items grouped by service
+- about page content, team members, testimonials, and company values
+- contact details, contact intro, map/contact blocks, and legal/company data
+- page visibility for public pages
+
+Most content sections also include a `Block ausblenden` style control. Empty public sections are hidden automatically so blank admin content does not leave empty blocks on the website.
+
 ## Content Storage
 
-Admin-edited content is stored in browser `localStorage` via `betonbiber_pricing_config_v1`.
+Admin-edited website content is stored in browser `localStorage` via `betonbiber_pricing_config_v1`.
 
 This means:
 
 - content changes are browser-local unless a backend/storage service is added
 - uploaded team images are stored as data URLs in browser storage
+- uploaded gallery images are stored as data URLs in browser storage
 - large image uploads should be avoided
 
 For production content management, connect the admin panel to persistent storage such as Firebase, Supabase, a custom API, or a CMS.
@@ -165,6 +195,23 @@ using (true);
 
 Because GitHub Pages is a static host, the Supabase anon key is visible in the browser. For stricter production security, move admin reads/updates/deletes behind Supabase Auth, a Supabase Edge Function, or a small custom backend.
 
+## GitHub Pages Secrets
+
+The deploy workflow reads Vite variables from GitHub repository secrets during `npm run build`.
+
+Set these secrets before expecting production contact requests to reach Supabase:
+
+- `VITE_ADMIN_PASS_HASH`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_REQUESTS_TABLE`
+
+EmailJS secrets are optional unless email delivery is wired back in:
+
+- `VITE_EMAILJS_SERVICE_ID`
+- `VITE_EMAILJS_TEMPLATE_ID`
+- `VITE_EMAILJS_PUBLIC_KEY`
+
 ## SEO And Deployment
 
 The current GitHub Pages deployment uses:
@@ -205,6 +252,7 @@ Before publishing:
 2. Run `npm run build`.
 3. Confirm the real domain in SEO files.
 4. Fill real legal/imprint data in the admin panel.
-5. Decide whether admin content should remain localStorage-based or move to backend storage.
-6. Replace the prototype admin password gate if public admin access is required.
-7. Deploy the `dist/` folder to the hosting provider.
+5. Create the Supabase `quote_requests` table and configure GitHub Secrets for central contact requests.
+6. Decide whether admin-edited website content should remain localStorage-based or move to backend storage.
+7. Replace the prototype admin password gate if stronger admin security is required.
+8. Deploy the `dist/` folder to the hosting provider.
