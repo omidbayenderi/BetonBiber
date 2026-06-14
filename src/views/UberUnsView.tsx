@@ -82,8 +82,8 @@ export default function UberUnsView() {
           </div>
         </div>
 
-        {/* Team Members List (4 members matching constants) */}
-        <div className="flex flex-col gap-8">
+        {/* Team Members List — hidden when no members configured */}
+        {teamList.length > 0 && <div className="flex flex-col gap-8">
           <div className="text-center max-w-xl mx-auto flex flex-col gap-2">
             <h2 className="font-display font-black text-2xl uppercase text-primary-navy tracking-tight">
               {about?.teamTitle || 'Unsere Bautenschutz-Spezialisten'}
@@ -117,7 +117,7 @@ export default function UberUnsView() {
               </div>
             ))}
           </div>
-        </div>
+        </div>}
 
         {/* Testimonials Panel / Client feedbacks with Stars */}
         <div className="flex flex-col gap-8 bg-brand-bg rounded-xl border border-gray-200 p-8 md:p-12">
