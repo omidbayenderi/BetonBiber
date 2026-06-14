@@ -4,18 +4,14 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Phone, Mail, MapPin, Send, ShieldAlert, Award, RefreshCw } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, Award } from 'lucide-react';
 import { QuoteRequest } from '../types';
 import { MINIMAP_URL } from '../constants';
-import QuoteRequestList from '../components/QuoteRequestList';
 import { getPricingConfig } from '../lib/pricingState';
 import { hasAnyText, hasText } from '../lib/contentVisibility';
 
 interface KontaktProps {
-  requests: QuoteRequest[];
-  onAddRequest: (req: QuoteRequest) => void;
-  onDeleteRequest: (id: string) => void;
-  onClearAll: () => void;
+  onAddRequest: (req: QuoteRequest) => Promise<void> | void;
   exportParams: {
     serviceType: string;
     areaSize: number;
@@ -27,10 +23,7 @@ interface KontaktProps {
 }
 
 export default function KontaktView({
-  requests,
   onAddRequest,
-  onDeleteRequest,
-  onClearAll,
   exportParams,
   clearExportParams,
   triggerSuccess
@@ -44,6 +37,11 @@ export default function KontaktView({
     areaSize: '',
     message: ''
   });
+  const [prefilledEstimate, setPrefilledEstimate] = useState<{
+    serviceType: string;
+    estimatedCost: number;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [mapType, setMapType] = useState<'standard' | 'sat'>('standard');
@@ -89,6 +87,10 @@ export default function KontaktView({
         areaSize: exportParams.areaSize.toString(),
         message: exportParams.message
       });
+      setPrefilledEstimate({
+        serviceType: exportParams.serviceType,
+        estimatedCost: exportParams.estimatedCost
+      });
       // Clear after populating so user can modify freely
       clearExportParams();
       
@@ -100,7 +102,7 @@ export default function KontaktView({
     }
   }, [exportParams]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.phone) {
@@ -108,32 +110,29 @@ export default function KontaktView({
       return;
     }
 
-    const adminEmail = pricingConfig.contact?.email || 'anfrage@betonbiber.de';
-    const subject = encodeURIComponent(`Neue Anfrage: ${formData.serviceType} – ${formData.name}`);
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\n` +
-      `E-Mail: ${formData.email}\n` +
-      `Telefon: ${formData.phone}\n` +
-      `Leistung: ${formData.serviceType}\n` +
-      (formData.areaSize ? `Fläche: ${formData.areaSize} m²\n` : '') +
-      `\nNachricht:\n${formData.message}`
-    );
-    window.location.href = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
-
     const newRequest: QuoteRequest = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
       serviceType: formData.serviceType,
       areaSize: formData.areaSize ? Number(formData.areaSize) : undefined,
-      estimatedCost: (exportParams && formData.serviceType === exportParams.serviceType) ? exportParams.estimatedCost : undefined,
+      estimatedCost: (prefilledEstimate && formData.serviceType === prefilledEstimate.serviceType) ? prefilledEstimate.estimatedCost : undefined,
       message: formData.message,
       date: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       status: 'Received'
     };
 
-    onAddRequest(newRequest);
+    setIsSubmitting(true);
+
+    try {
+      await onAddRequest(newRequest);
+    } catch (error) {
+      console.error('Kontaktanfrage konnte nicht gespeichert werden:', error);
+      alert('Ihre Anfrage konnte nicht gespeichert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns telefonisch.');
+      setIsSubmitting(false);
+      return;
+    }
 
     triggerSuccess(
       'Vielen Dank für Ihr Vertrauen',
@@ -148,6 +147,8 @@ export default function KontaktView({
       areaSize: '',
       message: ''
     });
+    setPrefilledEstimate(null);
+    setIsSubmitting(false);
   };
 
   return (
@@ -417,23 +418,15 @@ export default function KontaktView({
 
               <button
                 type="submit"
-                className="mt-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-display font-black text-xs uppercase py-3.5 px-6 rounded transition-all text-center flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="mt-2 bg-brand-orange hover:bg-brand-orange-dark disabled:bg-slate-300 disabled:cursor-wait text-white font-display font-black text-xs uppercase py-3.5 px-6 rounded transition-all text-center flex items-center justify-center gap-2"
               >
-                <span>Nachricht absenden</span>
+                <span>{isSubmitting ? 'Wird gesendet...' : 'Nachricht absenden'}</span>
                 <Send size={12} />
               </button>
             </form>
           </div>
 
-        </div>
-
-        {/* Real-time reactive client list render at page footer */}
-        <div className="mt-8">
-          <QuoteRequestList
-            requests={requests}
-            onDeleteRequest={onDeleteRequest}
-            onClearAll={onClearAll}
-          />
         </div>
 
       </div>

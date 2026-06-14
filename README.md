@@ -78,6 +78,9 @@ Configure the following variables in your `.env` file for local development or a
 - `VITE_EMAILJS_SERVICE_ID`: EmailJS Service ID for contact form delivery.
 - `VITE_EMAILJS_TEMPLATE_ID`: EmailJS Template ID.
 - `VITE_EMAILJS_PUBLIC_KEY`: EmailJS Public Key.
+- `VITE_SUPABASE_URL`: Supabase project URL for central contact request storage.
+- `VITE_SUPABASE_ANON_KEY`: Supabase anon key used by the static frontend.
+- `VITE_SUPABASE_REQUESTS_TABLE`: Supabase table name for requests, defaults to `quote_requests`.
 
 To generate a SHA-256 hash for your password on macOS/Linux:
 ```bash
@@ -110,6 +113,57 @@ This means:
 - large image uploads should be avoided
 
 For production content management, connect the admin panel to persistent storage such as Firebase, Supabase, a custom API, or a CMS.
+
+## Central Contact Request Storage
+
+The Kontakt form writes customer requests to Supabase when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are configured. The admin panel reads the same central table in the `Kundenanfragen` tab. If Supabase is not configured, requests fall back to browser `localStorage` for local development only.
+
+Create the table in Supabase:
+
+```sql
+create table if not exists public.quote_requests (
+  id text primary key,
+  name text not null,
+  email text not null,
+  phone text not null,
+  service_type text not null,
+  message text,
+  area_size numeric,
+  estimated_cost numeric,
+  date text not null,
+  status text not null default 'Received',
+  created_at timestamptz not null default now()
+);
+```
+
+Minimum policies for the current static GitHub Pages setup:
+
+```sql
+alter table public.quote_requests enable row level security;
+
+create policy "Allow public request inserts"
+on public.quote_requests
+for insert
+with check (true);
+
+create policy "Allow admin dashboard reads"
+on public.quote_requests
+for select
+using (true);
+
+create policy "Allow admin dashboard updates"
+on public.quote_requests
+for update
+using (true)
+with check (true);
+
+create policy "Allow admin dashboard deletes"
+on public.quote_requests
+for delete
+using (true);
+```
+
+Because GitHub Pages is a static host, the Supabase anon key is visible in the browser. For stricter production security, move admin reads/updates/deletes behind Supabase Auth, a Supabase Edge Function, or a small custom backend.
 
 ## SEO And Deployment
 

@@ -17,6 +17,13 @@ import NotFoundView from './views/NotFoundView';
 import SuccessModal from './components/SuccessModal';
 import CookieConsent from './components/CookieConsent';
 import { getPricingConfig, PageVisibilityContent } from './lib/pricingState';
+import {
+  clearQuoteRequests,
+  createQuoteRequest,
+  deleteQuoteRequest,
+  loadQuoteRequests,
+  updateQuoteRequestStatus
+} from './lib/requestStore';
 
 const SITE_URL = 'https://omidbayenderi.github.io/BetonBiber';
 const APP_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -120,16 +127,21 @@ export default function App() {
     message: ''
   });
 
-  // Load request queries from local storage
+  // Load customer requests from the configured request store.
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('betonbiber_requests_v1');
-      if (stored) {
-        setRequests(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error('Error loading requests from localStorage:', e);
-    }
+    let isMounted = true;
+
+    loadQuoteRequests()
+      .then(loadedRequests => {
+        if (isMounted) setRequests(loadedRequests);
+      })
+      .catch(error => {
+        console.error('Kundenanfragen konnten nicht geladen werden:', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -172,34 +184,40 @@ export default function App() {
     setOrCreateMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
   }, [displayedPage]);
 
-  // Save requests to local storage
-  const saveRequests = (updatedList: QuoteRequest[]) => {
-    setRequests(updatedList);
+  const handleAddRequest = async (req: QuoteRequest) => {
+    const storedRequest = await createQuoteRequest(req);
+    setRequests(prev => [storedRequest, ...prev.filter(request => request.id !== storedRequest.id)]);
+  };
+
+  const handleDeleteRequest = async (id: string) => {
     try {
-      localStorage.setItem('betonbiber_requests_v1', JSON.stringify(updatedList));
-    } catch (e) {
-      console.error('Error saving requests to localStorage:', e);
+      await deleteQuoteRequest(id);
+      setRequests(prev => prev.filter(request => request.id !== id));
+    } catch (error) {
+      console.error('Kundenanfrage konnte nicht gelöscht werden:', error);
+      alert('Die Kundenanfrage konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.');
     }
   };
 
-  const handleAddRequest = (req: QuoteRequest) => {
-    const newList = [req, ...requests];
-    saveRequests(newList);
+  const handleUpdateRequestStatus = async (id: string, newStatus: QuoteRequest['status']) => {
+    try {
+      await updateQuoteRequestStatus(id, newStatus);
+      setRequests(prev => prev.map(request => request.id === id ? { ...request, status: newStatus } : request));
+    } catch (error) {
+      console.error('Status der Kundenanfrage konnte nicht aktualisiert werden:', error);
+      alert('Der Status konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.');
+    }
   };
 
-  const handleDeleteRequest = (id: string) => {
-    const newList = requests.filter(r => r.id !== id);
-    saveRequests(newList);
-  };
-
-  const handleUpdateRequestStatus = (id: string, newStatus: QuoteRequest['status']) => {
-    const newList = requests.map(r => r.id === id ? { ...r, status: newStatus } : r);
-    saveRequests(newList);
-  };
-
-  const handleClearAllRequests = () => {
-    if (confirm('Möchten Sie Ihren gesamten Simulationsverlauf wirklich löschen?')) {
-      saveRequests([]);
+  const handleClearAllRequests = async () => {
+    if (confirm('Möchten Sie alle Kundenanfragen wirklich dauerhaft löschen?')) {
+      try {
+        await clearQuoteRequests();
+        setRequests([]);
+      } catch (error) {
+        console.error('Kundenanfragen konnten nicht geleert werden:', error);
+        alert('Die Kundenanfragen konnten nicht geleert werden. Bitte versuchen Sie es erneut.');
+      }
     }
   };
 
@@ -282,10 +300,7 @@ export default function App() {
 
         {displayedPage === 'kontakt' && (
           <KontaktView 
-            requests={requests}
             onAddRequest={handleAddRequest}
-            onDeleteRequest={handleDeleteRequest}
-            onClearAll={handleClearAllRequests}
             exportParams={exportParams}
             clearExportParams={() => setExportParams(null)}
             triggerSuccess={triggerSuccessAlert}
