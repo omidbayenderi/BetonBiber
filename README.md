@@ -214,19 +214,20 @@ EmailJS secrets are optional unless email delivery is wired back in:
 
 ## SEO And Deployment
 
-The current GitHub Pages deployment uses:
+The custom domain deployment uses:
 
 ```text
-https://omidbayenderi.github.io/BetonBiber
+https://beton-biber.de
 ```
 
-If a custom domain such as `https://betonbiber.de` is connected later, update:
+Configuration points for the custom domain:
 
 - `SITE_URL` in `src/App.tsx`
-- `base` in `vite.config.ts`
+- `base: '/'` in `vite.config.ts`
 - canonical and Open Graph URL in `index.html`
 - URLs in `public/sitemap.xml`
-- sitemap URL in `public/robots.txt`
+- sitemap and disallow URL in `public/robots.txt`
+- custom domain in `public/CNAME`
 
 For SPA hosting, configure all unknown public routes to serve `index.html`. The included `public/404.html` helps static hosts such as GitHub Pages redirect unknown paths back into the app.
 

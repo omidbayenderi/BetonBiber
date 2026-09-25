@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://omidbayenderi.github.io/BetonBiber/</loc>
+    <loc>https://beton-biber.de/</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://omidbayenderi.github.io/BetonBiber/leistungen</loc>
+    <loc>https://beton-biber.de/leistungen</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://omidbayenderi.github.io/BetonBiber/galerie</loc>
+    <loc>https://beton-biber.de/galerie</loc>
     <lastmod>2026-06-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://omidbayenderi.github.io/BetonBiber/ueber-uns</loc>
+    <loc>https://beton-biber.de/ueber-uns</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://omidbayenderi.github.io/BetonBiber/kontakt</loc>
+    <loc>https://beton-biber.de/kontakt</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

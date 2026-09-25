@@ -25,7 +25,7 @@ import {
   updateQuoteRequestStatus
 } from './lib/requestStore';
 
-const SITE_URL = 'https://omidbayenderi.github.io/BetonBiber';
+const SITE_URL = 'https://beton-biber.de';
 const APP_BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const PAGE_ROUTES: Record<Exclude<PageId, 'not_found'>, string> = {
@@ -83,7 +83,11 @@ function getPageFromLocation(): PageId {
   const redirectedPath = sessionStorage.getItem('betonbiber_redirect_path');
   if (redirectedPath) {
     sessionStorage.removeItem('betonbiber_redirect_path');
-    return ROUTE_PAGES[redirectedPath] || 'not_found';
+    const browserPath = `${APP_BASE_PATH}${redirectedPath === '/' ? '/' : redirectedPath}`;
+    if (window.location.pathname !== browserPath) {
+      window.history.replaceState({}, '', browserPath);
+    }
+    return matchedPage || 'not_found';
   }
   const pathWithoutBase = APP_BASE_PATH && window.location.pathname.startsWith(APP_BASE_PATH)
     ? window.location.pathname.slice(APP_BASE_PATH.length) || '/'
