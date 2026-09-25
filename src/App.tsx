@@ -83,6 +83,7 @@ function getPageFromLocation(): PageId {
   const redirectedPath = sessionStorage.getItem('betonbiber_redirect_path');
   if (redirectedPath) {
     sessionStorage.removeItem('betonbiber_redirect_path');
+    const matchedPage = ROUTE_PAGES[redirectedPath];
     const browserPath = `${APP_BASE_PATH}${redirectedPath === '/' ? '/' : redirectedPath}`;
     if (window.location.pathname !== browserPath) {
       window.history.replaceState({}, '', browserPath);
