@@ -5,6 +5,14 @@
 
 export type PageId = 'home' | 'leistungen' | 'galerie' | 'uber_uns' | 'kontakt' | 'admin' | 'not_found';
 
+export interface ComingSoonConfig {
+  isEnabled: boolean;
+  targetDate: string; // ISO date string, e.g. "2026-11-01T09:00:00"
+  title: string;
+  subtitle: string;
+  showCountdown: boolean;
+}
+
 export interface TeamMember {
   name: string;
   role: string;

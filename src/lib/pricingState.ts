@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GalleryItem, ServiceDetail, TeamMember, Testimonial } from '../types';
+import { GalleryItem, ServiceDetail, TeamMember, Testimonial, ComingSoonConfig } from '../types';
 
 export interface ServicePricing {
   name: string;
@@ -157,6 +157,7 @@ export interface PricingConfig {
   footer?: FooterContent;
   gallery?: GalleryContent;
   pageVisibility?: PageVisibilityContent;
+  comingSoon?: ComingSoonConfig;
 }
 
 export const DEFAULT_PRICING_CONFIG: PricingConfig = {
@@ -438,6 +439,13 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
     hideGalerie: false,
     hideUberUns: false,
     hideKontakt: false
+  },
+  comingSoon: {
+    isEnabled: false,
+    targetDate: '2026-11-01T09:00:00',
+    title: 'Hier entsteht die neue Internetpräsenz von BetonBiber',
+    subtitle: 'Wir überarbeiten unseren Webauftritt grundlegend, um Ihnen bald noch präzisere Schadensanalysen, direkte Online-Kalkulationen und modernste Bautenschutz-Lösungen bieten zu können.',
+    showCountdown: true
   }
 };
 
@@ -508,6 +516,10 @@ export function getPricingConfig(): PricingConfig {
           ...DEFAULT_PRICING_CONFIG.pageVisibility!,
           ...(parsed.pageVisibility || {})
         };
+        parsed.comingSoon = {
+          ...DEFAULT_PRICING_CONFIG.comingSoon!,
+          ...(parsed.comingSoon || {})
+        };
         return parsed;
       }
     }
@@ -515,6 +527,18 @@ export function getPricingConfig(): PricingConfig {
     console.error('Error reading pricing config', e);
   }
   return DEFAULT_PRICING_CONFIG;
+}
+
+export function getComingSoonConfig(): ComingSoonConfig {
+  return getPricingConfig().comingSoon || DEFAULT_PRICING_CONFIG.comingSoon!;
+}
+
+export function saveComingSoonConfig(comingSoon: ComingSoonConfig): void {
+  const current = getPricingConfig();
+  savePricingConfig({
+    ...current,
+    comingSoon
+  });
 }
 
 export function savePricingConfig(config: PricingConfig): void {

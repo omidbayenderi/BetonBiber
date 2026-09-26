@@ -14,9 +14,10 @@ import UberUnsView from './views/UberUnsView';
 import KontaktView from './views/KontaktView';
 import AdminView from './views/AdminView';
 import NotFoundView from './views/NotFoundView';
+import ComingSoonView from './views/ComingSoonView';
 import SuccessModal from './components/SuccessModal';
 import CookieConsent from './components/CookieConsent';
-import { getPricingConfig, PageVisibilityContent } from './lib/pricingState';
+import { getPricingConfig, PageVisibilityContent, PricingConfig } from './lib/pricingState';
 import {
   clearQuoteRequests,
   createQuoteRequest,
@@ -43,7 +44,8 @@ const ROUTE_PAGES: Record<string, PageId> = {
   '/galerie': 'galerie',
   '/ueber-uns': 'uber_uns',
   '/kontakt': 'kontakt',
-  '/amit': 'admin'
+  '/amit': 'admin',
+  '/admin': 'admin'
 };
 
 const PAGE_SEO: Record<PageId, { title: string; description: string; robots?: string }> = {
@@ -110,6 +112,7 @@ function setOrCreateMeta(selector: string, attrs: Record<string, string>) {
 
 export default function App() {
   const [activePage, setActivePage] = useState<PageId>(() => getPageFromLocation());
+  const [pricingConfig, setPricingConfig] = useState<PricingConfig>(() => getPricingConfig());
   const [pageVisibility, setPageVisibility] = useState<PageVisibilityContent>(() => getPricingConfig().pageVisibility || {});
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   
@@ -157,11 +160,15 @@ export default function App() {
 
   useEffect(() => {
     const handleConfigUpdated = () => {
-      setPageVisibility(getPricingConfig().pageVisibility || {});
+      const freshConfig = getPricingConfig();
+      setPricingConfig(freshConfig);
+      setPageVisibility(freshConfig.pageVisibility || {});
     };
     window.addEventListener('pricing_config_updated', handleConfigUpdated);
     return () => window.removeEventListener('pricing_config_updated', handleConfigUpdated);
   }, []);
+
+  const isComingSoonActive = Boolean(pricingConfig.comingSoon?.isEnabled);
 
   const isPageHidden = (page: PageId) => {
     if (page === 'admin' || page === 'not_found') return false;
@@ -176,6 +183,15 @@ export default function App() {
   const displayedPage: PageId = isPageHidden(activePage) ? 'not_found' : activePage;
 
   useEffect(() => {
+    if (isComingSoonActive && activePage !== 'admin') {
+      const comingSoonTitle = `${pricingConfig.comingSoon?.title || 'Bald verfügbar'} | BetonBiber`;
+      const comingSoonDesc = pricingConfig.comingSoon?.subtitle || 'Unsere Webseite befindet sich aktuell im Umbau.';
+      document.title = comingSoonTitle;
+      setOrCreateMeta('meta[name="description"]', { name: 'description', content: comingSoonDesc });
+      setOrCreateMeta('meta[name="robots"]', { name: 'robots', content: 'noindex, follow' });
+      return;
+    }
+
     const seo = PAGE_SEO[displayedPage];
     const canonicalPath = displayedPage !== 'not_found' && displayedPage !== 'admin' ? PAGE_ROUTES[displayedPage] : window.location.pathname;
     const canonicalUrl = `${SITE_URL}${canonicalPath === '/' ? '' : canonicalPath}`;
@@ -187,7 +203,7 @@ export default function App() {
     setOrCreateMeta('meta[property="og:title"]', { property: 'og:title', content: seo.title });
     setOrCreateMeta('meta[property="og:description"]', { property: 'og:description', content: seo.description });
     setOrCreateMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
-  }, [displayedPage]);
+  }, [displayedPage, isComingSoonActive, activePage, pricingConfig.comingSoon]);
 
   const handleAddRequest = async (req: QuoteRequest) => {
     const storedRequest = await createQuoteRequest(req);
@@ -266,6 +282,19 @@ export default function App() {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (isComingSoonActive && activePage !== 'admin') {
+    return (
+      <div className="min-h-screen bg-[#07111f] text-white flex flex-col justify-between" id="applet-root">
+        <ComingSoonView 
+          config={pricingConfig.comingSoon}
+          contact={pricingConfig.contact}
+          onNavigateToAdmin={() => handleNavigate('admin')}
+        />
+        <CookieConsent />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col justify-between" id="applet-root">

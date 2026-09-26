@@ -13,7 +13,7 @@ import {
   UploadCloud, Link2, SlidersHorizontal, LayoutDashboard, ClipboardList,
   BriefcaseBusiness, Building2, MessageSquareQuote, EyeOff, Images
 } from 'lucide-react';
-import { GalleryItem, QuoteRequest, ServiceDetail, TeamMember, Testimonial } from '../types';
+import { GalleryItem, QuoteRequest, ServiceDetail, TeamMember, Testimonial, ComingSoonConfig } from '../types';
 import {
   getPricingConfig,
   savePricingConfig,
@@ -58,7 +58,7 @@ export default function AdminView({
   // Config State
   const [config, setConfig] = useState<PricingConfig>(getPricingConfig());
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'services' | 'gallery' | 'about' | 'requests'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'homepage' | 'services' | 'gallery' | 'about' | 'requests' | 'coming_soon'>('calculator');
 
   const handleLogin = useCallback(async (e: FormEvent) => {
     e.preventDefault();
@@ -97,6 +97,16 @@ export default function AdminView({
         setSaveSuccess(false);
       }, 3000);
     }
+  };
+
+  const handleComingSoonChange = <K extends keyof ComingSoonConfig>(key: K, val: ComingSoonConfig[K]) => {
+    setConfig(prev => ({
+      ...prev,
+      comingSoon: {
+        ...(prev.comingSoon || DEFAULT_PRICING_CONFIG.comingSoon!),
+        [key]: val
+      }
+    }));
   };
 
   const handleServicePriceChange = (index: number, val: number) => {
@@ -717,6 +727,22 @@ export default function AdminView({
               >
                 <FileSpreadsheet size={15} />
                 <span>Kundenanfragen ({requests.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('coming_soon')}
+                className={`flex min-h-11 items-center gap-2 rounded-2xl px-4 py-2.5 font-display text-xs font-extrabold uppercase transition-all ${
+                  activeTab === 'coming_soon'
+                    ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-primary-navy'
+                }`}
+              >
+                <Clock3 size={15} />
+                <span>Coming Soon</span>
+                {config.comingSoon?.isEnabled && (
+                  <span className="ml-1 rounded-full bg-red-500 text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-wider animate-pulse">
+                    Aktiv
+                  </span>
+                )}
               </button>
             </div>
             {saveSuccess && (
@@ -2331,6 +2357,251 @@ export default function AdminView({
           </div>
           </div>
         )}
+
+        {/* Tab: Coming Soon / Wartungsmodus */}
+        {activeTab === 'coming_soon' && (() => {
+          const comingSoon = config.comingSoon || DEFAULT_PRICING_CONFIG.comingSoon!;
+          const isEnabled = Boolean(comingSoon.isEnabled);
+          const dtLocalValue = comingSoon.targetDate ? comingSoon.targetDate.slice(0, 16) : '2026-11-01T09:00';
+
+          return (
+            <div className="flex flex-col gap-6">
+              <div className={workbenchClass}>
+                <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-navy text-brand-orange shadow-xl shadow-primary-navy/15">
+                      <Clock3 size={23} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-display text-[11px] font-black uppercase tracking-[0.22em] text-brand-orange-dark">
+                          Wartungsmodus
+                        </p>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
+                          isEnabled
+                            ? 'bg-red-50 text-red-700 ring-1 ring-red-200 animate-pulse'
+                            : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                        }`}>
+                          {isEnabled ? '● Live Wartungsmodus Aktiv' : '● Website Öffentlich Sichtbar'}
+                        </span>
+                      </div>
+                      <h2 className="mt-1 font-display text-2xl font-black uppercase tracking-tight text-primary-navy">
+                        Coming Soon & Wartungsmodus
+                      </h2>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                        Aktivieren Sie den Wartungsmodus, um Besuchern während Umbauarbeiten eine moderne Coming-Soon-Seite mit Live-Countdown und Ihren Kontaktdaten anzuzeigen. Sie als Administrator behalten jederzeit uneingeschränkten Zugriff auf das Admin Panel.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleSaveConfig}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-brand-orange px-6 font-display text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-brand-orange/20 transition hover:bg-brand-orange-dark active:scale-[0.98]"
+                    >
+                      <Save size={15} />
+                      <span>Einstellungen speichern</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-12">
+                {/* Left Column: Switch & Texts */}
+                <div className="space-y-6 lg:col-span-7">
+                  
+                  {/* Mode Toggle Switch Card */}
+                  <div className={panelClass}>
+                    <h3 className={sectionTitleClass}>
+                      <SlidersHorizontal size={17} className="text-brand-orange" />
+                      <span>Modus-Steuerung</span>
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Schalten Sie die gesamte Website mit einem Klick in den Coming-Soon-Modus.
+                    </p>
+
+                    <div className="mt-5 rounded-2xl border border-slate-200/90 bg-slate-50/80 p-5">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <label htmlFor="toggle-coming-soon" className="font-display text-sm font-black text-slate-900 cursor-pointer">
+                            Wartungsmodus aktivieren
+                          </label>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {isEnabled 
+                              ? 'Aktiv: Besucher sehen ausschließlich die Coming Soon Seite.' 
+                              : 'Deaktiviert: Die reguläre Website ist für alle Besucher erreichbar.'}
+                          </p>
+                        </div>
+                        <label className="relative inline-flex cursor-pointer items-center">
+                          <input
+                            id="toggle-coming-soon"
+                            type="checkbox"
+                            checked={isEnabled}
+                            onChange={(e) => handleComingSoonChange('isEnabled', e.target.checked)}
+                            className="sr-only"
+                          />
+                          <div className={`h-7 w-12 rounded-full transition-colors ${isEnabled ? 'bg-brand-orange' : 'bg-slate-300'}`}>
+                            <div className={`h-6 w-6 rounded-full bg-white shadow-md transform transition-transform mt-0.5 ${isEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Texts & Headings */}
+                  <div className={panelClass}>
+                    <h3 className={sectionTitleClass}>
+                      <Type size={17} className="text-brand-orange" />
+                      <span>Inhalte & Texte</span>
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Passen Sie den Haupttitel und die Erläuterung auf der Wartungsseite an.
+                    </p>
+
+                    <div className="mt-5 space-y-4">
+                      <div>
+                        <label className={labelClass}>Hauptüberschrift (Titel)</label>
+                        <input
+                          type="text"
+                          value={comingSoon.title}
+                          onChange={(e) => handleComingSoonChange('title', e.target.value)}
+                          placeholder="Hier entsteht die neue Internetpräsenz von BetonBiber"
+                          className={`${inputClass} mt-1`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClass}>Untertitel / Beschreibung</label>
+                        <textarea
+                          rows={4}
+                          value={comingSoon.subtitle}
+                          onChange={(e) => handleComingSoonChange('subtitle', e.target.value)}
+                          placeholder="Wir überarbeiten unseren Webauftritt grundlegend..."
+                          className={`${inputClass} mt-1 min-h-24 resize-y leading-relaxed`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Right Column: Countdown Settings & Contact Info Hint */}
+                <div className="space-y-6 lg:col-span-5">
+                  
+                  {/* Countdown Configuration */}
+                  <div className={panelClass}>
+                    <h3 className={sectionTitleClass}>
+                      <Clock3 size={17} className="text-brand-orange" />
+                      <span>Countdown-Einstellungen</span>
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Legen Sie das Zieldatum für den Relaunch fest.
+                    </p>
+
+                    <div className="mt-5 space-y-4">
+                      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                        <span className="font-display text-xs font-extrabold uppercase text-slate-700">
+                          Live-Countdown anzeigen
+                        </span>
+                        <label className="relative inline-flex cursor-pointer items-center">
+                          <input
+                            type="checkbox"
+                            checked={comingSoon.showCountdown}
+                            onChange={(e) => handleComingSoonChange('showCountdown', e.target.checked)}
+                            className="sr-only"
+                          />
+                          <div className={`h-6 w-11 rounded-full transition-colors ${comingSoon.showCountdown ? 'bg-primary-navy' : 'bg-slate-300'}`}>
+                            <div className={`h-5 w-5 rounded-full bg-white shadow-md transform transition-transform mt-0.5 ${comingSoon.showCountdown ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                          </div>
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className={labelClass}>Ziel-Datum und Uhrzeit (Lokale Zeit)</label>
+                        <input
+                          type="datetime-local"
+                          value={dtLocalValue}
+                          onChange={(e) => handleComingSoonChange('targetDate', e.target.value)}
+                          className={`${inputClass} mt-1 font-mono`}
+                        />
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          Format: Jahr-Monat-Tag Stunde:Minute
+                        </p>
+                      </div>
+
+                      {/* Quick presets */}
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                          Schnellwahl
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { label: '+7 Tage', days: 7 },
+                            { label: '+14 Tage', days: 14 },
+                            { label: '+30 Tage', days: 30 }
+                          ].map(preset => (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => {
+                                const d = new Date();
+                                d.setDate(d.getDate() + preset.days);
+                                d.setHours(9, 0, 0, 0);
+                                const pad = (n: number) => String(n).padStart(2, '0');
+                                const val = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                                handleComingSoonChange('targetDate', val);
+                              }}
+                              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 font-display text-[10px] font-black uppercase text-slate-600 transition hover:border-brand-orange hover:text-brand-orange"
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Synchronized Contact Info Card */}
+                  <div className="rounded-[1.5rem] border border-blue-100 bg-blue-50/80 p-5 text-blue-950">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
+                        <Phone size={17} />
+                      </div>
+                      <div>
+                        <h4 className="font-display text-xs font-black uppercase tracking-wider text-blue-900">
+                          Zentrale Kontaktdaten-Synchronisation
+                        </h4>
+                        <p className="mt-1.5 text-xs leading-relaxed text-blue-800">
+                          Die Coming Soon Seite verwendet automatisch dieselben Kontaktdaten wie die Kontaktseite (Telefon: <strong className="font-semibold">{config.contact?.phone || '-'}</strong>, E-Mail: <strong className="font-semibold">{config.contact?.email || '-'}</strong>). Änderungen im Tab <em>Preise & Parameter</em> $\rightarrow$ <em>Firmendaten & Impressum</em> wirken sich sofort auf beide Seiten aus.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save button card */}
+                  <div className="flex flex-col gap-3">
+                    <button
+                      type="button"
+                      onClick={handleSaveConfig}
+                      className="w-full min-h-12 flex items-center justify-center gap-2 rounded-2xl bg-brand-orange px-6 font-display text-xs font-black uppercase tracking-wider text-white shadow-xl shadow-brand-orange/25 transition hover:bg-brand-orange-dark active:scale-[0.98]"
+                    >
+                      <Save size={16} />
+                      <span>Einstellungen speichern</span>
+                    </button>
+                    {saveSuccess && (
+                      <p className="text-center font-display text-xs font-extrabold uppercase text-emerald-600 animate-fadeIn">
+                        ✓ Einstellungen erfolgreich live geschaltet!
+                      </p>
+                    )}
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </section>
